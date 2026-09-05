@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 import '../../../../core/database/app_database.dart' as db;
 import '../../domain/models/habit.dart';
-import '../../domain/models/habit_schedule.dart';
+import 'habit_schedule_mappers.dart';
 
 extension HabitDataMapper on db.Habit {
   Habit toDomain() {

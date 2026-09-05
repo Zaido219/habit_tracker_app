@@ -79,7 +79,7 @@ class HabitRepositoryImpl implements HabitRepository {
     DateTime? to,
   }) {
     return _habitLogDao
-        .watchLogsForHabit(habitId, from: from, to: to)
+        .watchForHabit(habitId)
         .map((driftLogs) => driftLogs.map((l) => l.toDomain()).toList());
   }
 

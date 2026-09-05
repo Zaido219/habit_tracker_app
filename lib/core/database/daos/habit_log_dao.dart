@@ -61,4 +61,5 @@ class HabitLogDao extends DatabaseAccessor<AppDatabase>
           ..where((log) => log.habitId.equals(habitId)))
         .go();
   }
+  
 }

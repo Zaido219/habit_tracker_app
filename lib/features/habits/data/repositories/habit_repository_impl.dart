@@ -9,6 +9,7 @@ import '../../domain/models/habit.dart';
 import '../../domain/models/habit_log.dart';
 import '../../domain/models/habit_reminder.dart';
 import '../../domain/repositories/habit_repository.dart';
+import '../mappers/habit_mappers.dart';
 
 class HabitRepositoryImpl implements HabitRepository {
   final AppDatabase _db;

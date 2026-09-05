@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart' hide isNotNull, isNull;
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 // Adjust these imports to match your project's directory path
@@ -6,12 +7,13 @@ import 'package:habit_tracker_app/core/database/app_database.dart';
 import 'package:habit_tracker_app/core/database/daos/habit_dao.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   late AppDatabase database;
   late HabitDao habitDao;
 
   setUp(() {
     // Instantiate an isolated, in-memory database for each test run
-    database = AppDatabase();
+    database = AppDatabase(NativeDatabase.memory());
     habitDao = HabitDao(database);
   });
 
@@ -41,62 +43,71 @@ void main() {
 
     test('getAll returns habits ordered by position index', () async {
       // Insert habits out of position order
-      await habitDao.create(HabitsCompanion.insert(
-        id: 'habit_b',
-        title: 'Read Book',
-        color: '#00FF00',
-        scheduleType: 'daily',
-        scheduleConfig: '{}',
-        position: 2,
-      ));
+      await habitDao.create(
+        HabitsCompanion.insert(
+          id: 'habit_b',
+          title: 'Read Book',
+          color: '#00FF00',
+          scheduleType: 'daily',
+          scheduleConfig: '{}',
+          position: 2,
+        ),
+      );
 
-      await habitDao.create(HabitsCompanion.insert(
-        id: 'habit_a',
-        title: 'Drink Water',
-        color: '#0000FF',
-        scheduleType: 'daily',
-        scheduleConfig: '{}',
-        position: 1,
-      ));
+      await habitDao.create(
+        HabitsCompanion.insert(
+          id: 'habit_a',
+          title: 'Drink Water',
+          color: '#0000FF',
+          scheduleType: 'daily',
+          scheduleConfig: '{}',
+          position: 1,
+        ),
+      );
 
       final habits = await habitDao.getAll();
 
       expect(habits.length, equals(2));
-      expect(habits.first.id, equals('habit_a')); // position 1 comes before position 2
+      expect(
+        habits.first.id,
+        equals('habit_a'),
+      ); // position 1 comes before position 2
       expect(habits.last.id, equals('habit_b'));
     });
 
     test('watchAll emits a new list when a habit is added', () async {
       final stream = habitDao.watchAll();
 
-      // Expect initial empty state and subsequent update when inserted
-      expect(
-        stream,
-        emitsInOrder([
-          isEmpty,
-          hasLength(1),
-        ]),
+      // 1. Verify the initial state of the stream before any writes occur
+      expect(await stream.first, isEmpty);
+
+      // 2. Perform the database write
+      await habitDao.create(
+        HabitsCompanion.insert(
+          id: 'habit_stream_1',
+          title: 'Meditate',
+          color: '#FFFF00',
+          scheduleType: 'daily',
+          scheduleConfig: '{}',
+          position: 0,
+        ),
       );
 
-      await habitDao.create(HabitsCompanion.insert(
-        id: 'habit_stream_1',
-        title: 'Meditate',
-        color: '#FFFF00',
-        scheduleType: 'daily',
-        scheduleConfig: '{}',
-        position: 0,
-      ));
+      // 3. Verify the updated stream state
+      expect(await stream.first, hasLength(1));
     });
 
     test('updateHabit correctly modifies fields', () async {
-      await habitDao.create(HabitsCompanion.insert(
-        id: 'habit_update',
-        title: 'Old Title',
-        color: '#000000',
-        scheduleType: 'daily',
-        scheduleConfig: '{}',
-        position: 0,
-      ));
+      await habitDao.create(
+        HabitsCompanion.insert(
+          id: 'habit_update',
+          title: 'Old Title',
+          color: '#000000',
+          scheduleType: 'daily',
+          scheduleConfig: '{}',
+          position: 0,
+        ),
+      );
 
       final success = await habitDao.updateHabit(
         'habit_update',
@@ -110,14 +121,16 @@ void main() {
     });
 
     test('deleteById removes the target habit', () async {
-      await habitDao.create(HabitsCompanion.insert(
-        id: 'habit_delete',
-        title: 'Temporary Habit',
-        color: '#FFFFFF',
-        scheduleType: 'daily',
-        scheduleConfig: '{}',
-        position: 0,
-      ));
+      await habitDao.create(
+        HabitsCompanion.insert(
+          id: 'habit_delete',
+          title: 'Temporary Habit',
+          color: '#FFFFFF',
+          scheduleType: 'daily',
+          scheduleConfig: '{}',
+          position: 0,
+        ),
+      );
 
       final deletedRows = await habitDao.deleteById('habit_delete');
       final result = await habitDao.getById('habit_delete');

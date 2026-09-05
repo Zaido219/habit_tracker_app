@@ -1,19 +1,30 @@
 import 'package:drift/drift.dart';
-import 'package:habit_tracker_app/core/database/connection.dart';
+
+import 'connection.dart';
+
+import 'tables/habits.dart';
 import 'tables/habit_logs.dart';
 import 'tables/habit_reminders.dart';
-import 'tables/habits.dart';
+
+import 'daos/habit_dao.dart';
+import 'daos/habit_log_dao.dart';
+import 'daos/habit_reminder_dao.dart';
 
 part 'app_database.g.dart';
 
 @DriftDatabase(
-  tables:[
+  tables: [
     Habits,
     HabitLogs,
     HabitReminders,
   ],
+  daos: [
+    HabitDao,
+    HabitLogDao,
+    HabitReminderDao,
+  ],
 )
-class AppDatabase extends _$AppDatabase{
+class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(openConnection());
 
   @override

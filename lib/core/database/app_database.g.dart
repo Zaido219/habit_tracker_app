@@ -1118,6 +1118,11 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $HabitsTable habits = $HabitsTable(this);
   late final $HabitLogsTable habitLogs = $HabitLogsTable(this);
   late final $HabitRemindersTable habitReminders = $HabitRemindersTable(this);
+  late final HabitDao habitDao = HabitDao(this as AppDatabase);
+  late final HabitLogDao habitLogDao = HabitLogDao(this as AppDatabase);
+  late final HabitReminderDao habitReminderDao = HabitReminderDao(
+    this as AppDatabase,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();

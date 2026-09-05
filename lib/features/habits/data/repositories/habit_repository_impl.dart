@@ -11,6 +11,7 @@ import '../../domain/models/habit_reminder.dart';
 import '../../domain/repositories/habit_repository.dart';
 import '../mappers/habit_mappers.dart';
 import '../mappers/habit_reminder_mappers.dart';
+import '../mappers/habit_log_mappers.dart';
 
 class HabitRepositoryImpl implements HabitRepository {
   final AppDatabase _db;

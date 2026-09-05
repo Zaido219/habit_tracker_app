@@ -88,9 +88,9 @@ class HabitRepositoryImpl implements HabitRepository {
   Future<void> logCompletion(String habitId, DateTime timestamp) async {
     await _habitLogDao.create(
       HabitLogsCompanion.insert(
-        id: Value(DateTime.now().millisecondsSinceEpoch.toString()),
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
         habitId: habitId,
-        completedAt: timestamp,
+        completedAt: Value(timestamp),
       ),
     );
   }

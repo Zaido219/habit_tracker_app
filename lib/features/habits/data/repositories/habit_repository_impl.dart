@@ -67,7 +67,7 @@ class HabitRepositoryImpl implements HabitRepository {
     await _db.transaction(() async {
       for (int i = 0; i < reorderedHabits.length; i++) {
         final habit = reorderedHabits[i].copyWith(position: i);
-        await _habitDao.updateHabit(habit.toCompanion());
+        await _habitDao.updateHabit(habit.id, habit.toCompanion());
       }
     });
   }

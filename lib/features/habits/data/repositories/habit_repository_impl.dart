@@ -10,6 +10,7 @@ import '../../domain/models/habit_log.dart';
 import '../../domain/models/habit_reminder.dart';
 import '../../domain/repositories/habit_repository.dart';
 import '../mappers/habit_mappers.dart';
+import '../mappers/habit_reminder_mappers.dart';
 
 class HabitRepositoryImpl implements HabitRepository {
   final AppDatabase _db;
@@ -53,7 +54,7 @@ class HabitRepositoryImpl implements HabitRepository {
 
   @override
   Future<void> updateHabit(Habit habit) async {
-    await _habitDao.updateHabit(habit.toCompanion());
+    await _habitDao.updateHabit(habit.id,habit.toCompanion());
   }
 
   @override

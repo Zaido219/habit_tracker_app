@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:habit_tracker_app/features/habits/domain/models/habit_schedule.dart';
 
 // Import raw Drift DataClasses (alias if needed)
 import '../../../../core/database/app_database.dart' as db;
@@ -10,11 +11,15 @@ extension HabitDataMapper on db.Habit {
     return Habit(
       id: id,
       title: title,
-      colorHex: color,
-      scheduleType: scheduleType,
-      scheduleConfig: scheduleConfig,
+      colorHex: color,             // Map DB 'color' -> Domain 'colorHex'
+      soundUri: soundUri,
+      isProtected: isProtected,    // Don't forget missing required fields
       position: position,
       createdAt: createdAt,
+      schedule: HabitSchedule.fromStorage(
+        type: scheduleType,
+        config: scheduleConfig,
+      ), // Reconstruct your Domain object from DB strings
     );
   }
 }
@@ -22,12 +27,15 @@ extension HabitDataMapper on db.Habit {
 extension HabitDomainMapper on Habit {
   db.HabitsCompanion toCompanion() {
     return db.HabitsCompanion.insert(
-      id: id,
+      id: Value(id),
       title: title,
-      color: colorHex,
-      scheduleType: scheduleType,
-      scheduleConfig: scheduleConfig,
+      color: colorHex,             // Map Domain 'colorHex' -> DB 'color'
+      soundUri: Value(soundUri),
+      scheduleType: schedule.type, // Extract string from HabitSchedule
+      scheduleConfig: schedule.configJson, // Convert config to JSON string
+      isProtected: Value(isProtected),
       position: position,
+      createdAt: Value(createdAt),
     );
   }
 }

@@ -1,25 +1,23 @@
 import 'package:drift/drift.dart';
-import 'package:habit_tracker_app/features/habits/domain/models/habit_schedule.dart';
-
-// Import raw Drift DataClasses (alias if needed)
 import '../../../../core/database/app_database.dart' as db;
-// Import Domain Entities
 import '../../domain/models/habit.dart';
+import '../../domain/models/habit_schedule.dart';
 
 extension HabitDataMapper on db.Habit {
   Habit toDomain() {
     return Habit(
       id: id,
       title: title,
-      colorHex: color,             // Map DB 'color' -> Domain 'colorHex'
+      colorHex: color,
       soundUri: soundUri,
-      isProtected: isProtected,    // Don't forget missing required fields
+      isProtected: isProtected,
       position: position,
       createdAt: createdAt,
-      schedule: HabitSchedule.fromStorage(
-        type: scheduleType,
-        config: scheduleConfig,
-      ), // Reconstruct your Domain object from DB strings
+      // Uses the new deserializer
+      schedule: HabitScheduleStorage.fromStorage(
+        scheduleType,
+        scheduleConfig,
+      ),
     );
   }
 }
@@ -27,12 +25,12 @@ extension HabitDataMapper on db.Habit {
 extension HabitDomainMapper on Habit {
   db.HabitsCompanion toCompanion() {
     return db.HabitsCompanion.insert(
-      id: Value(id),
+      id: id, // Pass raw String if column is not wrapped in Value
       title: title,
-      color: colorHex,             // Map Domain 'colorHex' -> DB 'color'
+      color: colorHex,
       soundUri: Value(soundUri),
-      scheduleType: schedule.type, // Extract string from HabitSchedule
-      scheduleConfig: schedule.configJson, // Convert config to JSON string
+      scheduleType: schedule.type.name, // Extract enum String name ('daily', 'weekly')
+      scheduleConfig: schedule.toConfigJson(), // Converts List<int> to JSON String
       isProtected: Value(isProtected),
       position: position,
       createdAt: Value(createdAt),

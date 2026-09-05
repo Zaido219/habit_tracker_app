@@ -1,5 +1,4 @@
-import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
+import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:flutter_test/flutter_test.dart';
 
 // Adjust these imports to match your project's directory path

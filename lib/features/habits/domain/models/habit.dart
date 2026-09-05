@@ -36,4 +36,26 @@ class Habit {
       createdAt: createdAt,
     );
   }
+
+  Habit copyWith({
+  String? id,
+  String? title,
+  String? colorHex,
+  String? soundUri,
+  HabitSchedule? schedule,
+  bool? isProtected,
+  int? position,
+  DateTime? createdAt,
+}) {
+  return Habit(
+    id: id ?? this.id,
+    title: title ?? this.title,
+    colorHex: colorHex ?? this.colorHex,
+    soundUri: soundUri ?? this.soundUri,
+    schedule: schedule ?? this.schedule,
+    isProtected: isProtected ?? this.isProtected,
+    position: position ?? this.position,
+    createdAt: createdAt ?? this.createdAt,
+  );
+}
 }

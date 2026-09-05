@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:habit_tracker_app/core/database/connection.dart';
 import 'tables/habit_logs.dart';
 import 'tables/habit_reminders.dart';
 import 'tables/habits.dart';
@@ -13,7 +14,7 @@ part 'app_database.g.dart';
   ],
 )
 class AppDatabase extends _$AppDatabase{
-  AppDatabase(super.e);
+  AppDatabase() : super(openConnection());
 
   @override
   int get schemaVersion => 1;

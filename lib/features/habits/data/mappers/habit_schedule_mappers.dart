@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../../domain/models/habit_schedule.dart';
 
 extension HabitScheduleStorage on HabitSchedule {
   /// Deserializes database strings into a rich HabitSchedule object

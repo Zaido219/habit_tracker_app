@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:habit_tracker_app/features/habits/presentation/widgets/create_habit_bottom_sheet.dart';
 import 'package:intl/intl.dart';
 import '../providers/habit_dashboard_provider.dart';
 
@@ -19,7 +20,11 @@ class HabitDashboardScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () {
-              // We'll wire up the "Create Habit" form modal later!
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true, 
+                builder: (context) => const CreateHabitBottomSheet(),
+                );
             },
           ),
         ],

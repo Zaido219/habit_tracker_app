@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'features/habits/presentation/screen/habit_dashboard_screen.dart';
 
 void main() {
   runApp(
@@ -20,11 +21,7 @@ class HabitTrackerApp extends StatelessWidget {
         useMaterial3: true,
         colorSchemeSeed: Colors.deepPurple,
       ),
-      home: const Scaffold(
-        body: Center(
-          child: Text('Habit Tracker Initialized'),
-        ),
-      ),
+      home: HabitDashboardScreen(),
     );
   }
 }

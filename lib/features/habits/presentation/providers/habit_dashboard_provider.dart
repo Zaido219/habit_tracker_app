@@ -4,10 +4,7 @@ import '../../domain/models/habit.dart';
 import '../../domain/models/habit_log.dart';
 import '../../domain/repositories/habit_repository.dart';
 import '../models/habit_dashboard_state.dart';
-import './habit_repository_provider.dart';
-
-// Assume you have a provider exposing your HabitRepository implementation
-// final habitRepositoryProvider = Provider<HabitRepository>((ref) => ...);
+import 'habit_repository_provider.dart';
 
 class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
   late final HabitRepository _repository;
@@ -15,21 +12,14 @@ class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
 
   @override
   HabitDashboardState build() {
-    // 1. Inject the repository using ref
     _repository = ref.watch(habitRepositoryProvider);
 
-    // 2. Register teardown logic instead of using a dispose() method
+    // Cancel old subscriptions if build() is called again
     ref.onDispose(() {
       _habitsSubscription?.cancel();
     });
 
-    _initialize();
-
-    // 3. Return initial state directly
-    return const HabitDashboardState();
-  }
-
-  void _initialize() {
+    // 1. Calculate initial visible dates
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final visibleDates = List.generate(
@@ -37,8 +27,18 @@ class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
       (index) => today.subtract(Duration(days: index)),
     );
 
-    state = state.copyWith(visibleDates: visibleDates, isLoading: true);
+    // 2. Start listening to repository streams AFTER initial build frame
+    _subscribeToStreams();
 
+    // 3. Return initial state directly (isLoading defaults to true)
+    return HabitDashboardState(
+      visibleDates: visibleDates,
+      isLoading: true,
+    );
+  }
+
+  void _subscribeToStreams() {
+    _habitsSubscription?.cancel();
     _habitsSubscription = _repository.watchAllHabits().listen((habits) {
       state = state.copyWith(habits: habits, isLoading: false);
     });
@@ -83,7 +83,6 @@ class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
   }
 }
 
-// Corrected Provider declaration
 final habitDashboardProvider =
     NotifierProvider<HabitDashboardNotifier, HabitDashboardState>(
   HabitDashboardNotifier.new,

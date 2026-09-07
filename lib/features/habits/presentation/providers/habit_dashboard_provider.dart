@@ -1,21 +1,33 @@
 import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../domain/models/habit.dart';
 import '../../domain/models/habit_log.dart';
 import '../../domain/repositories/habit_repository.dart';
 import '../models/habit_dashboard_state.dart';
 
-class HabitDashboardNotifier extends StateNotifier<HabitDashboardState> {
+// Modern Riverpod approach
+class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
   final HabitRepository _repository;
   StreamSubscription<List<Habit>>? _habitsSubscription;
-  StreamSubscription<List<HabitLog>>? _logsSubscription;
 
-  HabitDashboardNotifier(this._repository) : super(const HabitDashboardState()) {
+  HabitDashboardNotifier(this._repository);
+
+  @override
+  HabitDashboardState build() {
+    // Clean up subscriptions when provider rebuilds or disposes
+    ref.onDispose(() {
+      _habitsSubscription?.cancel();
+    });
+
     _initialize();
+
+    // Return initial state directly from build()
+    return const HabitDashboardState();
   }
 
   void _initialize() {
-    // 1. Calculate the visible dates (e.g., today and the previous 4 days)
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final visibleDates = List.generate(
@@ -25,17 +37,9 @@ class HabitDashboardNotifier extends StateNotifier<HabitDashboardState> {
 
     state = state.copyWith(visibleDates: visibleDates, isLoading: true);
 
-    // 2. Stream all habits from the repository
     _habitsSubscription = _repository.watchAllHabits().listen((habits) {
       state = state.copyWith(habits: habits, isLoading: false);
     });
-
-    // 3. Stream habit logs for the date window
-    final startDate = visibleDates.last;
-    final endDate = visibleDates.first.add(const Duration(days: 1));
-    
-    // Note: Assuming a watchAllLogs method or watching logs per habit
-    // For simplicity, updating state when habits load
   }
 
   /// Toggles completion for a given habit on a specific date
@@ -43,18 +47,15 @@ class HabitDashboardNotifier extends StateNotifier<HabitDashboardState> {
     final targetDate = DateTime(date.year, date.month, date.day);
 
     // Check if a log already exists for this habit on this date
-    final existingLog = state.logs.cast<HabitLog?>().firstWhere(
-      (log) {
-        if (log == null || log.habitId != habitId) return false;
-        final logDate = DateTime(
-          log.completedAt.year,
-          log.completedAt.month,
-          log.completedAt.day,
-        );
-        return logDate.isAtSameMomentAs(targetDate);
-      },
-      orElse: () => null,
-    );
+    final existingLog = state.logs.cast<HabitLog?>().firstWhere((log) {
+      if (log == null || log.habitId != habitId) return false;
+      final logDate = DateTime(
+        log.completedAt.year,
+        log.completedAt.month,
+        log.completedAt.day,
+      );
+      return logDate.isAtSameMomentAs(targetDate);
+    }, orElse: () => null);
 
     if (existingLog != null) {
       await _repository.removeLog(existingLog.id);
@@ -87,10 +88,10 @@ class HabitDashboardNotifier extends StateNotifier<HabitDashboardState> {
   }
 }
 
-
 final habitDashboardProvider =
-    StateNotifierProvider<HabitDashboardNotifier, HabitDashboardState>((ref) {
-  // Inject your HabitRepository instance here
-  final repository = ref.watch(habitRepositoryProvider);
-  return HabitDashboardNotifier(repository);
-});
+    NotifierProvider<HabitDashboardNotifier, HabitDashboardState>(() {
+      // In Riverpod 2+, repositories are usually provided via another provider:
+      // final repository = ref.watch(habitRepositoryProvider);
+      // return HabitDashboardNotifier(repository);
+      throw UnimplementedError('Provide your HabitRepository instance here');
+    });

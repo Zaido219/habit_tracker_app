@@ -6,10 +6,12 @@ import '../../domain/models/habit_log.dart';
 import '../../domain/repositories/habit_repository.dart';
 import '../models/habit_dashboard_state.dart';
 import 'habit_repository_provider.dart';
+import 'package:async/async.dart';
 
 class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
   late final HabitRepository _repository;
   StreamSubscription<List<Habit>>? _habitsSubscription;
+  StreamSubscription<List<HabitLog>>? _logsSubscription;
 
   @override
   HabitDashboardState build() {
@@ -40,8 +42,11 @@ class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
 
   void _subscribeToStreams() {
     _habitsSubscription?.cancel();
+    _logsSubscription?.cancel();
+
     _habitsSubscription = _repository.watchAllHabits().listen((habits) {
       state = state.copyWith(habits: habits, isLoading: false);
+      _listenToLogsForHabits(habits);
     });
   }
 
@@ -98,6 +103,29 @@ class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
     );
 
     await _repository.createHabit(habit: newHabit);
+  }
+  ///Listen to habit logs
+  void _listenToLogsForHabits(List<Habit> habits){
+    
+    _logsSubscription?.cancel();
+
+    if(habits.isEmpty){
+      state = state.copyWith(logs: []);
+      return;
+    }
+
+    final logStreams = habits.map((habit){
+      return _repository.watchLogsForHabit(habit.id);
+    }).toList();
+
+    _logsSubscription = StreamGroup.merge(logStreams).listen((_) async {
+      final aggregatedLogs = <HabitLog>[];
+      for(final habit in habits){
+        final habitLog = await _repository.watchLogsForHabit(habit.id).first;
+        aggregatedLogs.addAll(habitLog);
+      }
+      state = state.copyWith(logs: aggregatedLogs);
+    });
   }
 }
 

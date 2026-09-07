@@ -1,6 +1,9 @@
 import "../../domain/models/habit.dart";
 import "../../domain/models/habit_log.dart";
 
+// This code defines an immutable UI state model for your habit dashboard screen.
+//It acts as a single, centralized "data snapshot" holding every piece of information your 
+//dashboard UI needs to render itself at any given second.
 class HabitDashboardState{
   final List<Habit> habits;
   final List<HabitLog> logs;

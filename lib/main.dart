@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() {
-  runApp(const HabitTrackerApp());
+  runApp(
+    //providerScope stores the state of all riverpod providers
+    const ProviderScope(child: HabitTrackerApp())
+  );
 }
 
 class HabitTrackerApp extends StatelessWidget {

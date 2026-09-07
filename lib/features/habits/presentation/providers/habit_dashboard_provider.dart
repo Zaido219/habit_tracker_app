@@ -1,12 +1,15 @@
 import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habit_tracker_app/features/habits/domain/models/habit_schedule.dart';
+
 import '../../domain/models/habit.dart';
 import '../../domain/models/habit_log.dart';
 import '../../domain/repositories/habit_repository.dart';
 import '../models/habit_dashboard_state.dart';
 import 'habit_repository_provider.dart';
-import 'package:async/async.dart';
+
+import 'package:rxdart/rxdart.dart';
 
 class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
   late final HabitRepository _repository;
@@ -34,10 +37,7 @@ class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
     _subscribeToStreams();
 
     // 3. Return initial state directly (isLoading defaults to true)
-    return HabitDashboardState(
-      visibleDates: visibleDates,
-      isLoading: true,
-    );
+    return HabitDashboardState(visibleDates: visibleDates, isLoading: true);
   }
 
   void _subscribeToStreams() {
@@ -54,18 +54,15 @@ class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
   Future<void> toggleHabitLog(String habitId, DateTime date) async {
     final targetDate = DateTime(date.year, date.month, date.day);
 
-    final existingLog = state.logs.cast<HabitLog?>().firstWhere(
-      (log) {
-        if (log == null || log.habitId != habitId) return false;
-        final logDate = DateTime(
-          log.completedAt.year,
-          log.completedAt.month,
-          log.completedAt.day,
-        );
-        return logDate.isAtSameMomentAs(targetDate);
-      },
-      orElse: () => null,
-    );
+    final existingLog = state.logs.cast<HabitLog?>().firstWhere((log) {
+      if (log == null || log.habitId != habitId) return false;
+      final logDate = DateTime(
+        log.completedAt.year,
+        log.completedAt.month,
+        log.completedAt.day,
+      );
+      return logDate.isAtSameMomentAs(targetDate);
+    }, orElse: () => null);
 
     if (existingLog != null) {
       await _repository.removeLog(existingLog.id);
@@ -89,8 +86,8 @@ class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
   }
 
   /// Creates a new habit and persists it via the repository
-  Future<void> addHabit(String title) async{
-    if(title.trim().isEmpty) return;
+  Future<void> addHabit(String title) async {
+    if (title.trim().isEmpty) return;
 
     final newHabit = Habit(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -99,37 +96,34 @@ class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
       createdAt: DateTime.now(),
       colorHex: '0xFF6750A4',
       schedule: HabitSchedule(type: ScheduleType.daily),
-      isProtected: false
+      isProtected: false,
     );
 
     await _repository.createHabit(habit: newHabit);
   }
+
   ///Listen to habit logs
-  void _listenToLogsForHabits(List<Habit> habits){
-    
+  void _listenToLogsForHabits(List<Habit> habits) {
     _logsSubscription?.cancel();
 
-    if(habits.isEmpty){
+    if (habits.isEmpty) {
       state = state.copyWith(logs: []);
       return;
     }
 
-    final logStreams = habits.map((habit){
+    final logStreams = habits.map((habit) {
       return _repository.watchLogsForHabit(habit.id);
     }).toList();
 
-    _logsSubscription = StreamGroup.merge(logStreams).listen((_) async {
-      final aggregatedLogs = <HabitLog>[];
-      for(final habit in habits){
-        final habitLog = await _repository.watchLogsForHabit(habit.id).first;
-        aggregatedLogs.addAll(habitLog);
-      }
-      state = state.copyWith(logs: aggregatedLogs);
-    });
+    _logsSubscription = CombineLatestStream.list(logStreams)
+        .map((listOfLogLists) => listOfLogLists.expand((logs) => logs).toList())
+        .listen((aggregatedLogs) {
+          state = state.copyWith(logs: aggregatedLogs);
+        });
   }
 }
 
 final habitDashboardProvider =
     NotifierProvider<HabitDashboardNotifier, HabitDashboardState>(
-  HabitDashboardNotifier.new,
-);
+      HabitDashboardNotifier.new,
+    );

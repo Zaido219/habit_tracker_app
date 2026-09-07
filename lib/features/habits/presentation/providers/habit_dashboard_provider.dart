@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:habit_tracker_app/features/habits/domain/models/habit_schedule.dart';
 import '../../domain/models/habit.dart';
 import '../../domain/models/habit_log.dart';
 import '../../domain/repositories/habit_repository.dart';
@@ -80,6 +81,23 @@ class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
     state = state.copyWith(habits: updatedList);
 
     await _repository.updateHabitPositions(updatedList);
+  }
+
+  /// Creates a new habit and persists it via the repository
+  Future<void> addHabit(String title) async{
+    if(title.trim().isEmpty) return;
+
+    final newHabit = Habit(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      title: title.trim(),
+      position: state.habits.length,
+      createdAt: DateTime.now(),
+      colorHex: '0xFF6750A4',
+      schedule: HabitSchedule(type: ScheduleType.daily),
+      isProtected: false
+    );
+
+    await _repository.createHabit(habit: newHabit);
   }
 }
 

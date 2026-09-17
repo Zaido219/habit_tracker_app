@@ -2,15 +2,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/calculators/streak_engine.dart';
 import '../../domain/calculators/consistency_engine.dart';
 import '../../../habits/domain/models/habit_schedule.dart';
+import '../../../habits/domain/models/habit_log.dart';
 import '../../../habits/presentation/providers/habit_repository_provider.dart';
 
 class HabitAnalytics {
   final StreakStats streakStats;
   final ConsistencyStats consistencyStats;
+  final List<HabitLog> logs; // raw logs, for heatmap/calendar rendering
 
   const HabitAnalytics({
     required this.streakStats,
     required this.consistencyStats,
+    required this.logs,
   });
 }
 
@@ -25,6 +28,7 @@ final habitAnalyticsProvider = StreamProvider.family<HabitAnalytics, ({String ha
       return HabitAnalytics(
         streakStats: streakEngine.computeAll(),
         consistencyStats: consistencyEngine.computeAll(),
+        logs: logs,
       );
     });
   },

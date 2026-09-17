@@ -41,7 +41,8 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _buildStatsGrid(analytics),
-              // heatmap, toggle, etc. still to come
+              const SizedBox(height: 16),
+              _buildHeatmap(analytics),
             ],
           ),
         ),
@@ -86,6 +87,47 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
                 ],
               ),
             ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildHeatmap(HabitAnalytics analytics) {
+    final today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+
+    // Last 35 days, oldest first, ending today
+    final days = List.generate(35, (index) => today.subtract(Duration(days: 34 - index)));
+
+    bool isCompletedOn(DateTime date) {
+      return analytics.logs.any((log) {
+        final logDate = DateTime(log.completedAt.year, log.completedAt.month, log.completedAt.day);
+        return logDate == date;
+      });
+    }
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: days.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 7,
+        mainAxisSpacing: 4,
+        crossAxisSpacing: 4,
+      ),
+      itemBuilder: (context, index) {
+        final date = days[index];
+        final completed = isCompletedOn(date);
+        final isFuture = date.isAfter(today);
+
+        return Container(
+          decoration: BoxDecoration(
+            color: isFuture
+                ? Colors.transparent
+                : completed
+                    ? accentColor
+                    : accentColor.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(4),
           ),
         );
       },

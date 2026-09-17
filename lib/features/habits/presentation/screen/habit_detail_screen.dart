@@ -1,18 +1,11 @@
 import 'package:flutter/material.dart';
 
-class HabitDetailScreen extends StatefulWidget {
-  final String habitTitle;
-  final String habitSubtitle;
-  final IconData habitIcon;
-  final Color accentColor;
+import '../../domain/models/habit.dart'; // adjust path to match your project
 
-  const HabitDetailScreen({
-    super.key,
-    required this.habitTitle,
-    required this.habitSubtitle,
-    required this.habitIcon,
-    this.accentColor = Colors.deepPurple,
-  });
+class HabitDetailScreen extends StatefulWidget {
+  final Habit habit;
+
+  const HabitDetailScreen({super.key, required this.habit});
 
   @override
   State<HabitDetailScreen> createState() => _HabitDetailScreenState();
@@ -20,6 +13,15 @@ class HabitDetailScreen extends StatefulWidget {
 
 class _HabitDetailScreenState extends State<HabitDetailScreen> {
   bool isWeekView = false; // false = Month, true = Week
+
+  Color get accentColor {
+    var hex = widget.habit.colorHex
+        .replaceFirst('#', '')
+        .replaceFirst('0x', '')
+        .replaceFirst('0X', '');
+    if (hex.length == 6) hex = 'FF$hex'; // add alpha if missing
+    return Color(int.parse(hex, radix: 16));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,24 +34,19 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: widget.accentColor.withOpacity(0.15),
+                color: accentColor.withValues(alpha: .15),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(widget.habitIcon, size: 18, color: widget.accentColor),
+              child: Icon(
+                Icons.check_circle_outline,
+                size: 18,
+                color: accentColor,
+              ),
             ),
             const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.habitTitle,
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                ),
-                Text(
-                  widget.habitSubtitle,
-                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-                ),
-              ],
+            Text(
+              widget.habit.title,
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
             ),
           ],
         ),
@@ -81,24 +78,23 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
 
   Widget _buildHeatmap() {
     final shades = [
-      Colors.deepPurple.shade50,
-      Colors.deepPurple.shade100,
-      Colors.deepPurple.shade200,
-      Colors.deepPurple.shade400,
-      Colors.deepPurple.shade600,
+      accentColor.withValues(alpha: .15),
+      accentColor.withValues(alpha: .35),
+      accentColor.withValues(alpha: .55),
+      accentColor.withValues(alpha: .75),
+      accentColor,
     ];
 
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: 35, // e.g. 5 weeks x 7 days
+      itemCount: 35,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 7,
         mainAxisSpacing: 4,
         crossAxisSpacing: 4,
       ),
       itemBuilder: (context, index) {
-        // Replace with real completion data lookup
         final shade = shades[index % shades.length];
         return Container(
           decoration: BoxDecoration(
@@ -135,8 +131,10 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
         height: 32,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: selected ? widget.accentColor : Colors.transparent,
-          border: Border.all(color: selected ? widget.accentColor : Colors.grey.shade300),
+          color: selected ? accentColor : Colors.transparent,
+          border: Border.all(
+            color: selected ? accentColor : Colors.grey.shade300,
+          ),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(
@@ -152,6 +150,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
   }
 
   Widget _buildStatsGrid() {
+    // Replace hardcoded values with real calculations from your logs provider
     final stats = [
       _StatData(Icons.local_fire_department, 'Current streak', '1 day'),
       _StatData(Icons.access_time, 'Time since started', '366 days'),
@@ -188,11 +187,14 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
               const SizedBox(height: 4),
               Row(
                 children: [
-                  Icon(stat.icon, size: 14, color: widget.accentColor),
+                  Icon(stat.icon, size: 14, color: accentColor),
                   const SizedBox(width: 4),
                   Text(
                     stat.value,
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),

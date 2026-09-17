@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habit_tracker_app/features/habits/presentation/widgets/create_habit_bottom_sheet.dart';
 import 'package:intl/intl.dart';
+import 'habit_detail_screen.dart';
 
 import '../providers/habit_dashboard_provider.dart';
 

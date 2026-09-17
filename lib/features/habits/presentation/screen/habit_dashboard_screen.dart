@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habit_tracker_app/features/habits/presentation/widgets/create_habit_bottom_sheet.dart';
 import 'package:intl/intl.dart';
+
 import '../providers/habit_dashboard_provider.dart';
 
 class HabitDashboardScreen extends ConsumerWidget {
@@ -22,9 +23,9 @@ class HabitDashboardScreen extends ConsumerWidget {
             onPressed: () {
               showModalBottomSheet(
                 context: context,
-                isScrollControlled: true, 
+                isScrollControlled: true,
                 builder: (context) => const CreateHabitBottomSheet(),
-                );
+              );
             },
           ),
         ],
@@ -32,32 +33,32 @@ class HabitDashboardScreen extends ConsumerWidget {
       body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
           : state.habits.isEmpty
-              ? const Center(child: Text('No habits yet. Tap + to add one!'))
-              : Column(
-                  children: [
-                    // Date Header Row
-                    _buildDateHeader(state.visibleDates),
-                    const Divider(height: 1),
-                    // Habit Grid List
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: state.habits.length,
-                        itemBuilder: (context, index) {
-                          final habit = state.habits[index];
-                          return _buildHabitRow(
-                            context: context,
-                            habit: habit,
-                            visibleDates: state.visibleDates,
-                            state: state,
-                            onToggleDate: (date) {
-                              notifier.toggleHabitLog(habit.id, date);
-                            },
-                          );
+          ? const Center(child: Text('No habits yet. Tap + to add one!'))
+          : Column(
+              children: [
+                // Date Header Row
+                _buildDateHeader(state.visibleDates),
+                const Divider(height: 1),
+                // Habit Grid List
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: state.habits.length,
+                    itemBuilder: (context, index) {
+                      final habit = state.habits[index];
+                      return _buildHabitRow(
+                        context: context,
+                        habit: habit,
+                        visibleDates: state.visibleDates,
+                        state: state,
+                        onToggleDate: (date) {
+                          notifier.toggleHabitLog(habit.id, date);
                         },
-                      ),
-                    ),
-                  ],
+                      );
+                    },
+                  ),
                 ),
+              ],
+            ),
     );
   }
 
@@ -117,13 +118,23 @@ class HabitDashboardScreen extends ConsumerWidget {
           // Habit Title
           Expanded(
             flex: 3,
-            child: Text(
-              habit.title,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => HabitDetailScreen(habit: habit),
+                  ),
+                );
+              },
+              child: Text(
+                habit.title,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
-              overflow: TextOverflow.ellipsis,
             ),
           ),
           // Checkmark Buttons Matrix
@@ -149,10 +160,14 @@ class HabitDashboardScreen extends ConsumerWidget {
                     width: 28,
                     height: 28,
                     decoration: BoxDecoration(
-                      color: isCompleted ? Colors.deepPurple : Colors.transparent,
+                      color: isCompleted
+                          ? Colors.deepPurple
+                          : Colors.transparent,
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(
-                        color: isCompleted ? Colors.deepPurple : Colors.grey.shade400,
+                        color: isCompleted
+                            ? Colors.deepPurple
+                            : Colors.grey.shade400,
                         width: 1.5,
                       ),
                     ),

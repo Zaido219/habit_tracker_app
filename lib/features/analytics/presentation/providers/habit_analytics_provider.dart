@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/calculators/streak_engine.dart';
 import '../../domain/calculators/consistency_engine.dart';
 import '../../../habits/domain/models/habit_schedule.dart';
-import '../../../../core/database/app_database.dart';
 import '../../../../core/database/daos/habit_log_dao.dart';
 class HabitAnalytics {
   final StreakStats streakStats;

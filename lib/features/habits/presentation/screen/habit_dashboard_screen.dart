@@ -9,6 +9,12 @@ import '../providers/habit_dashboard_provider.dart';
 class HabitDashboardScreen extends ConsumerWidget {
   const HabitDashboardScreen({super.key});
 
+  Color _parseHabitColor(String colorHex) {
+    var hex = colorHex.replaceFirst('#', '').replaceFirst('0x', '').replaceFirst('0X', '');
+    if (hex.length == 6) hex = 'FF$hex';
+    return Color(int.parse(hex, radix: 16));
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // 1. Listen to state changes from habitDashboardProvider
@@ -34,32 +40,32 @@ class HabitDashboardScreen extends ConsumerWidget {
       body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
           : state.habits.isEmpty
-          ? const Center(child: Text('No habits yet. Tap + to add one!'))
-          : Column(
-              children: [
-                // Date Header Row
-                _buildDateHeader(state.visibleDates),
-                const Divider(height: 1),
-                // Habit Grid List
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: state.habits.length,
-                    itemBuilder: (context, index) {
-                      final habit = state.habits[index];
-                      return _buildHabitRow(
-                        context: context,
-                        habit: habit,
-                        visibleDates: state.visibleDates,
-                        state: state,
-                        onToggleDate: (date) {
-                          notifier.toggleHabitLog(habit.id, date);
+              ? const Center(child: Text('No habits yet. Tap + to add one!'))
+              : Column(
+                  children: [
+                    // Date Header Row
+                    _buildDateHeader(state.visibleDates),
+                    const Divider(height: 1),
+                    // Habit Grid List
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: state.habits.length,
+                        itemBuilder: (context, index) {
+                          final habit = state.habits[index];
+                          return _buildHabitRow(
+                            context: context,
+                            habit: habit,
+                            visibleDates: state.visibleDates,
+                            state: state,
+                            onToggleDate: (date) {
+                              notifier.toggleHabitLog(habit.id, date);
+                            },
+                          );
                         },
-                      );
-                    },
-                  ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
     );
   }
 
@@ -109,6 +115,9 @@ class HabitDashboardScreen extends ConsumerWidget {
     required state,
     required Function(DateTime) onToggleDate,
   }) {
+    final habitColor = _parseHabitColor(habit.colorHex);
+    debugPrint('${habit.title}: raw=${habit.colorHex}, parsed=$habitColor');
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       decoration: const BoxDecoration(
@@ -161,14 +170,10 @@ class HabitDashboardScreen extends ConsumerWidget {
                     width: 28,
                     height: 28,
                     decoration: BoxDecoration(
-                      color: isCompleted
-                          ? Colors.deepPurple
-                          : Colors.transparent,
+                      color: isCompleted ? habitColor : Colors.transparent,
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(
-                        color: isCompleted
-                            ? Colors.deepPurple
-                            : Colors.grey.shade400,
+                        color: isCompleted ? habitColor : habitColor.withValues(alpha: 0.5),
                         width: 1.5,
                       ),
                     ),

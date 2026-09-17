@@ -1,5 +1,5 @@
 import '../../../habits/domain/models/habit_schedule.dart';
-import '../../../../core/database/app_database.dart'; // wherever HabitLog (Drift generated) lives
+import '../../../habits/domain/models/habit_log.dart'; // domain model, not Drift's generated one
 
 class StreakStats {
   final int currentStreak;

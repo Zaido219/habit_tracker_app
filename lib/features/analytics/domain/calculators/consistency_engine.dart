@@ -1,5 +1,6 @@
 import '../../../habits/domain/models/habit_schedule.dart';
-import '../../../../core/database/app_database.dart'; // wherever HabitLog lives
+import '../../../habits/domain/models/habit_log.dart';
+
 
 class ConsistencyStats {
   final double scorePercent; // 0.0 - 1.0

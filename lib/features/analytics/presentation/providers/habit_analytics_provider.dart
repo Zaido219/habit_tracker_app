@@ -2,7 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/calculators/streak_engine.dart';
 import '../../domain/calculators/consistency_engine.dart';
 import '../../../habits/domain/models/habit_schedule.dart';
-import '../../../../core/database/daos/habit_log_dao.dart';
+import '../../../habits/presentation/providers/habit_repository_provider.dart';
+
 class HabitAnalytics {
   final StreakStats streakStats;
   final ConsistencyStats consistencyStats;
@@ -13,16 +14,11 @@ class HabitAnalytics {
   });
 }
 
-// Adjust this to however you already expose your DAO via Riverpod
-final habitLogDaoProvider = Provider<HabitLogDao>((ref) {
-  throw UnimplementedError('Override this with your actual DAO provider');
-});
-
 final habitAnalyticsProvider = StreamProvider.family<HabitAnalytics, ({String habitId, HabitSchedule schedule})>(
   (ref, args) {
-    final dao = ref.watch(habitLogDaoProvider);
+    final repository = ref.watch(habitRepositoryProvider);
 
-    return dao.watchForHabit(args.habitId).map((logs) {
+    return repository.watchLogsForHabit(args.habitId).map((logs) {
       final streakEngine = StreakEngine(schedule: args.schedule, logs: logs);
       final consistencyEngine = ConsistencyEngine(schedule: args.schedule, logs: logs);
 

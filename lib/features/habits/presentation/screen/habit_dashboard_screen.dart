@@ -14,7 +14,13 @@ class HabitDashboardScreen extends ConsumerWidget {
     if (hex.length == 6) hex = 'FF$hex';
     return Color(int.parse(hex, radix: 16));
   }
-
+  void _showEditHabitBottomSheet(BuildContext context, dynamic habit){
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, 
+      builder: (context) => CreateHabitBottomSheet()
+      );
+  }
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // 1. Listen to state changes from habitDashboardProvider

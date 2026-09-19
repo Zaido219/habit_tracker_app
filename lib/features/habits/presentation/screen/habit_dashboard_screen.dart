@@ -18,7 +18,7 @@ class HabitDashboardScreen extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true, 
-      builder: (context) => CreateHabitBottomSheet()
+      builder: (context) => CreateHabitBottomSheet(habitToEdit: habit)
       );
   }
   @override

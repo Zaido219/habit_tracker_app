@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/habit_dashboard_provider.dart';
+import '../../domain/models/habit.dart';
 
 class CreateHabitBottomSheet extends ConsumerStatefulWidget {
-  const CreateHabitBottomSheet({super.key});
+  final Habit? habitToEdit; // pass a habit object if editing
+  const CreateHabitBottomSheet({
+    super.key,
+    this.habitToEdit});
 
   @override
   ConsumerState<CreateHabitBottomSheet> createState() =>
@@ -12,7 +16,7 @@ class CreateHabitBottomSheet extends ConsumerStatefulWidget {
 
 class _CreateHabitBottomSheetState
     extends ConsumerState<CreateHabitBottomSheet> {
-  final _controller = TextEditingController();
+    final _controller = TextEditingController();
 
   // Palette to pick from — swap/extend these however you like
   static const _colorOptions = <Color>[
@@ -30,6 +34,14 @@ class _CreateHabitBottomSheetState
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState(){
+    super.initState();
+    if(widget.habitToEdit != null){
+      _controller.text = widget.habitToEdit!.title;
+    }
   }
 
   String _colorToHex(Color color) {

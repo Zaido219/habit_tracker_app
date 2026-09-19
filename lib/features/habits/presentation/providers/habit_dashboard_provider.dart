@@ -94,6 +94,7 @@ class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
       colorHex: colorHex,
       schedule: HabitSchedule(type: ScheduleType.daily),
       isProtected: false,
+      isArchived: false,
     );
 
     await _repository.createHabit(habit: newHabit);
@@ -121,6 +122,11 @@ class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
   /// Updates habit
   Future<void> updateHabit(Habit updatedHabit) async {
     await _repository.updateHabit(updatedHabit);
+  }
+  /// Archived a habit
+  /// If you need the ui to make some user notification changd this methods return
+  Future<void> archiveHabit(String habitId ) async {
+    await _repository.archiveHabit(habitId);
   }
 }
 

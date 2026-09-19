@@ -245,6 +245,11 @@ class _HabitDashboardScreenState
                 setState(() {
                   _selectedHabit = habit;
                 });
+
+                _showEditHabitBottomSheet(
+                  context, 
+                  habit,
+                  );
               },
 
               child: Text(

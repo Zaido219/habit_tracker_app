@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../providers/habit_dashboard_provider.dart';
 import '../../domain/models/habit.dart';
 

@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habit_tracker_app/features/habits/presentation/widgets/create_habit_bottom_sheet.dart';
 import 'package:intl/intl.dart';
 import 'habit_detail_screen.dart';
-
 import '../providers/habit_dashboard_provider.dart';
+import 'package:habit_tracker_app/features/habits/domain/models/habit.dart';
 
 class HabitDashboardScreen extends ConsumerWidget {
   const HabitDashboardScreen({super.key});
@@ -14,11 +14,11 @@ class HabitDashboardScreen extends ConsumerWidget {
     if (hex.length == 6) hex = 'FF$hex';
     return Color(int.parse(hex, radix: 16));
   }
-  void _showEditHabitBottomSheet(BuildContext context, dynamic habit){
+  void _showEditHabitBottomSheet(BuildContext context, Habit habit){
     showModalBottomSheet(
       context: context,
       isScrollControlled: true, 
-      builder: (context) => CreateHabitBottomSheet(habitToEdit: habit)
+      builder: (context) => CreateHabitBottomSheet(habitToEdit: habit,)
       );
   }
   @override

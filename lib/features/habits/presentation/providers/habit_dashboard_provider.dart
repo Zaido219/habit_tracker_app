@@ -1,13 +1,11 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habit_tracker_app/features/habits/domain/models/habit_schedule.dart';
-
 import '../../domain/models/habit.dart';
 import '../../domain/models/habit_log.dart';
 import '../../domain/repositories/habit_repository.dart';
 import '../models/habit_dashboard_state.dart';
 import 'habit_repository_provider.dart';
-
 import 'package:rxdart/rxdart.dart';
 
 class HabitDashboardNotifier extends Notifier<HabitDashboardState> {

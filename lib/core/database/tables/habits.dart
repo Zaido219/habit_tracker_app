@@ -12,7 +12,8 @@ class Habits extends Table {
   IntColumn get position => integer()();
   DateTimeColumn get createdAt => 
     dateTime().withDefault(currentDateAndTime)();
-
+  BoolColumn get isArchived =>
+    boolean().withDefault(const Constant(false))();
   @override
   Set<Column> get primaryKey => {id};
 }

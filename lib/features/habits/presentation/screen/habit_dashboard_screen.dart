@@ -2,69 +2,137 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habit_tracker_app/features/habits/presentation/widgets/create_habit_bottom_sheet.dart';
 import 'package:intl/intl.dart';
+
 import 'habit_detail_screen.dart';
 import '../providers/habit_dashboard_provider.dart';
 import 'package:habit_tracker_app/features/habits/domain/models/habit.dart';
 
-class HabitDashboardScreen extends ConsumerWidget {
+class HabitDashboardScreen extends ConsumerStatefulWidget {
   const HabitDashboardScreen({super.key});
 
+  @override
+  ConsumerState<HabitDashboardScreen> createState() =>
+      _HabitDashboardScreenState();
+}
+
+class _HabitDashboardScreenState
+    extends ConsumerState<HabitDashboardScreen> {
+
+  Habit? _selectedHabit;
+
   Color _parseHabitColor(String colorHex) {
-    var hex = colorHex.replaceFirst('#', '').replaceFirst('0x', '').replaceFirst('0X', '');
-    if (hex.length == 6) hex = 'FF$hex';
+    var hex = colorHex
+        .replaceFirst('#', '')
+        .replaceFirst('0x', '')
+        .replaceFirst('0X', '');
+
+    if (hex.length == 6) {
+      hex = 'FF$hex';
+    }
+
     return Color(int.parse(hex, radix: 16));
   }
-  void _showEditHabitBottomSheet(BuildContext context, Habit habit){
+
+  void _showEditHabitBottomSheet(
+    BuildContext context,
+    Habit habit,
+  ) {
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true, 
-      builder: (context) => CreateHabitBottomSheet(habitToEdit: habit,)
-      );
+      isScrollControlled: true,
+      builder: (context) => CreateHabitBottomSheet(
+        habitToEdit: habit,
+      ),
+    );
   }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // 1. Listen to state changes from habitDashboardProvider
+  Widget build(BuildContext context) {
     final state = ref.watch(habitDashboardProvider);
     final notifier = ref.read(habitDashboardProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Habits'),
+        title: Text(
+          _selectedHabit == null
+              ? 'Habits'
+              : _selectedHabit!.title,
+        ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                builder: (context) => const CreateHabitBottomSheet(),
-              );
-            },
-          ),
+          if (_selectedHabit != null) ...[
+            IconButton(
+              tooltip: 'Archive habit',
+              icon: const Icon(Icons.archive_outlined),
+              onPressed: () async {
+                final habitId = _selectedHabit!.id;
+
+                await notifier.archiveHabit(habitId);
+
+                if (mounted) {
+                  setState(() {
+                    _selectedHabit = null;
+                  });
+                }
+              },
+            ),
+
+            IconButton(
+              tooltip: 'Cancel',
+              icon: const Icon(Icons.close),
+              onPressed: () {
+                setState(() {
+                  _selectedHabit = null;
+                });
+              },
+            ),
+          ] else
+            IconButton(
+              tooltip: 'Add habit',
+              icon: const Icon(Icons.add),
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (context) =>
+                      const CreateHabitBottomSheet(),
+                );
+              },
+            ),
         ],
       ),
+
       body: state.isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
           : state.habits.isEmpty
-              ? const Center(child: Text('No habits yet. Tap + to add one!'))
+              ? const Center(
+                  child: Text(
+                    'No habits yet. Tap + to add one!',
+                  ),
+                )
               : Column(
                   children: [
-                    // Date Header Row
                     _buildDateHeader(state.visibleDates),
+
                     const Divider(height: 1),
-                    // Habit Grid List
+
                     Expanded(
                       child: ListView.builder(
                         itemCount: state.habits.length,
                         itemBuilder: (context, index) {
                           final habit = state.habits[index];
+
                           return _buildHabitRow(
                             context: context,
                             habit: habit,
                             visibleDates: state.visibleDates,
                             state: state,
                             onToggleDate: (date) {
-                              notifier.toggleHabitLog(habit.id, date);
+                              notifier.toggleHabitLog(
+                                habit.id,
+                                date,
+                              );
                             },
                           );
                         },
@@ -77,29 +145,37 @@ class HabitDashboardScreen extends ConsumerWidget {
 
   Widget _buildDateHeader(List<DateTime> visibleDates) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+      padding: const EdgeInsets.symmetric(
+        vertical: 12.0,
+        horizontal: 16.0,
+      ),
       child: Row(
         children: [
           const Expanded(
             flex: 3,
-            child: SizedBox.shrink(), // Spacer for habit title column
+            child: SizedBox.shrink(),
           ),
+
           ...visibleDates.map(
             (date) => Expanded(
               flex: 1,
               child: Column(
                 children: [
                   Text(
-                    DateFormat('E').format(date).toUpperCase(), // e.g. "MON"
+                    DateFormat('E')
+                        .format(date)
+                        .toUpperCase(),
                     style: const TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                       color: Colors.grey,
                     ),
                   ),
+
                   const SizedBox(height: 2),
+
                   Text(
-                    DateFormat('d').format(date), // e.g. "7"
+                    DateFormat('d').format(date),
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -116,22 +192,42 @@ class HabitDashboardScreen extends ConsumerWidget {
 
   Widget _buildHabitRow({
     required BuildContext context,
-    required habit,
+    required Habit habit,
     required List<DateTime> visibleDates,
-    required state,
+    required dynamic state,
     required Function(DateTime) onToggleDate,
   }) {
     final habitColor = _parseHabitColor(habit.colorHex);
-    debugPrint('${habit.title}: raw=${habit.colorHex}, parsed=$habitColor');
+
+    debugPrint(
+      '${habit.title}: '
+      'raw=${habit.colorHex}, '
+      'parsed=$habitColor',
+    );
+
+    final isSelected = _selectedHabit?.id == habit.id;
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: Colors.black12, width: 0.5)),
+      padding: const EdgeInsets.symmetric(
+        vertical: 8.0,
+        horizontal: 16.0,
+      ),
+      decoration: BoxDecoration(
+        color: isSelected
+            ? Theme.of(context)
+                .colorScheme
+                .primary
+                .withValues(alpha: 0.08)
+            : null,
+        border: const Border(
+          bottom: BorderSide(
+            color: Colors.black12,
+            width: 0.5,
+          ),
+        ),
       ),
       child: Row(
         children: [
-          // Habit Title
           Expanded(
             flex: 3,
             child: GestureDetector(
@@ -139,14 +235,18 @@ class HabitDashboardScreen extends ConsumerWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => HabitDetailScreen(habit: habit),
+                    builder: (context) =>
+                        HabitDetailScreen(habit: habit),
                   ),
                 );
               },
-              onLongPress:(){
-                    // open bottom sheet for habit editing
-                    _showEditHabitBottomSheet(context, habit);
+
+              onLongPress: () {
+                setState(() {
+                  _selectedHabit = habit;
+                });
               },
+
               child: Text(
                 habit.title,
                 style: const TextStyle(
@@ -157,16 +257,25 @@ class HabitDashboardScreen extends ConsumerWidget {
               ),
             ),
           ),
-          // Checkmark Buttons Matrix
+
           ...visibleDates.map((date) {
-            final targetDate = DateTime(date.year, date.month, date.day);
+            final targetDate = DateTime(
+              date.year,
+              date.month,
+              date.day,
+            );
+
             final isCompleted = state.logs.any((log) {
-              if (log.habitId != habit.id) return false;
+              if (log.habitId != habit.id) {
+                return false;
+              }
+
               final logDate = DateTime(
                 log.completedAt.year,
                 log.completedAt.month,
                 log.completedAt.day,
               );
+
               return logDate.isAtSameMomentAs(targetDate);
             });
 
@@ -174,21 +283,38 @@ class HabitDashboardScreen extends ConsumerWidget {
               flex: 1,
               child: GestureDetector(
                 onTap: () => onToggleDate(date),
+
                 child: Center(
                   child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 150),
+                    duration: const Duration(
+                      milliseconds: 150,
+                    ),
                     width: 28,
                     height: 28,
                     decoration: BoxDecoration(
-                      color: isCompleted ? habitColor : Colors.transparent,
-                      borderRadius: BorderRadius.circular(6),
+                      color: isCompleted
+                          ? habitColor
+                          : Colors.transparent,
+
+                      borderRadius:
+                          BorderRadius.circular(6),
+
                       border: Border.all(
-                        color: isCompleted ? habitColor : habitColor.withValues(alpha: 0.5),
+                        color: isCompleted
+                            ? habitColor
+                            : habitColor.withValues(
+                                alpha: 0.5,
+                              ),
                         width: 1.5,
                       ),
                     ),
+
                     child: isCompleted
-                        ? const Icon(Icons.check, size: 18, color: Colors.white)
+                        ? const Icon(
+                            Icons.check,
+                            size: 18,
+                            color: Colors.white,
+                          )
                         : null,
                   ),
                 ),

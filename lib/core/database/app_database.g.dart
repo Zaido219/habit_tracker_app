@@ -106,6 +106,21 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, Habit> {
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _isArchivedMeta = const VerificationMeta(
+    'isArchived',
+  );
+  @override
+  late final GeneratedColumn<bool> isArchived = GeneratedColumn<bool>(
+    'is_archived',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_archived" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -117,6 +132,7 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, Habit> {
     isProtected,
     position,
     createdAt,
+    isArchived,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -202,6 +218,12 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, Habit> {
         createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
       );
     }
+    if (data.containsKey('is_archived')) {
+      context.handle(
+        _isArchivedMeta,
+        isArchived.isAcceptableOrUnknown(data['is_archived']!, _isArchivedMeta),
+      );
+    }
     return context;
   }
 
@@ -247,6 +269,10 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, Habit> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
       )!,
+      isArchived: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_archived'],
+      )!,
     );
   }
 
@@ -266,6 +292,7 @@ class Habit extends DataClass implements Insertable<Habit> {
   final bool isProtected;
   final int position;
   final DateTime createdAt;
+  final bool isArchived;
   const Habit({
     required this.id,
     required this.title,
@@ -276,6 +303,7 @@ class Habit extends DataClass implements Insertable<Habit> {
     required this.isProtected,
     required this.position,
     required this.createdAt,
+    required this.isArchived,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -291,6 +319,7 @@ class Habit extends DataClass implements Insertable<Habit> {
     map['is_protected'] = Variable<bool>(isProtected);
     map['position'] = Variable<int>(position);
     map['created_at'] = Variable<DateTime>(createdAt);
+    map['is_archived'] = Variable<bool>(isArchived);
     return map;
   }
 
@@ -307,6 +336,7 @@ class Habit extends DataClass implements Insertable<Habit> {
       isProtected: Value(isProtected),
       position: Value(position),
       createdAt: Value(createdAt),
+      isArchived: Value(isArchived),
     );
   }
 
@@ -325,6 +355,7 @@ class Habit extends DataClass implements Insertable<Habit> {
       isProtected: serializer.fromJson<bool>(json['isProtected']),
       position: serializer.fromJson<int>(json['position']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      isArchived: serializer.fromJson<bool>(json['isArchived']),
     );
   }
   @override
@@ -340,6 +371,7 @@ class Habit extends DataClass implements Insertable<Habit> {
       'isProtected': serializer.toJson<bool>(isProtected),
       'position': serializer.toJson<int>(position),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'isArchived': serializer.toJson<bool>(isArchived),
     };
   }
 
@@ -353,6 +385,7 @@ class Habit extends DataClass implements Insertable<Habit> {
     bool? isProtected,
     int? position,
     DateTime? createdAt,
+    bool? isArchived,
   }) => Habit(
     id: id ?? this.id,
     title: title ?? this.title,
@@ -363,6 +396,7 @@ class Habit extends DataClass implements Insertable<Habit> {
     isProtected: isProtected ?? this.isProtected,
     position: position ?? this.position,
     createdAt: createdAt ?? this.createdAt,
+    isArchived: isArchived ?? this.isArchived,
   );
   Habit copyWithCompanion(HabitsCompanion data) {
     return Habit(
@@ -381,6 +415,9 @@ class Habit extends DataClass implements Insertable<Habit> {
           : this.isProtected,
       position: data.position.present ? data.position.value : this.position,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      isArchived: data.isArchived.present
+          ? data.isArchived.value
+          : this.isArchived,
     );
   }
 
@@ -395,7 +432,8 @@ class Habit extends DataClass implements Insertable<Habit> {
           ..write('scheduleConfig: $scheduleConfig, ')
           ..write('isProtected: $isProtected, ')
           ..write('position: $position, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('isArchived: $isArchived')
           ..write(')'))
         .toString();
   }
@@ -411,6 +449,7 @@ class Habit extends DataClass implements Insertable<Habit> {
     isProtected,
     position,
     createdAt,
+    isArchived,
   );
   @override
   bool operator ==(Object other) =>
@@ -424,7 +463,8 @@ class Habit extends DataClass implements Insertable<Habit> {
           other.scheduleConfig == this.scheduleConfig &&
           other.isProtected == this.isProtected &&
           other.position == this.position &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.isArchived == this.isArchived);
 }
 
 class HabitsCompanion extends UpdateCompanion<Habit> {
@@ -437,6 +477,7 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
   final Value<bool> isProtected;
   final Value<int> position;
   final Value<DateTime> createdAt;
+  final Value<bool> isArchived;
   final Value<int> rowid;
   const HabitsCompanion({
     this.id = const Value.absent(),
@@ -448,6 +489,7 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
     this.isProtected = const Value.absent(),
     this.position = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.isArchived = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   HabitsCompanion.insert({
@@ -460,6 +502,7 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
     this.isProtected = const Value.absent(),
     required int position,
     this.createdAt = const Value.absent(),
+    this.isArchived = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        title = Value(title),
@@ -477,6 +520,7 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
     Expression<bool>? isProtected,
     Expression<int>? position,
     Expression<DateTime>? createdAt,
+    Expression<bool>? isArchived,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -489,6 +533,7 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
       if (isProtected != null) 'is_protected': isProtected,
       if (position != null) 'position': position,
       if (createdAt != null) 'created_at': createdAt,
+      if (isArchived != null) 'is_archived': isArchived,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -503,6 +548,7 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
     Value<bool>? isProtected,
     Value<int>? position,
     Value<DateTime>? createdAt,
+    Value<bool>? isArchived,
     Value<int>? rowid,
   }) {
     return HabitsCompanion(
@@ -515,6 +561,7 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
       isProtected: isProtected ?? this.isProtected,
       position: position ?? this.position,
       createdAt: createdAt ?? this.createdAt,
+      isArchived: isArchived ?? this.isArchived,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -549,6 +596,9 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (isArchived.present) {
+      map['is_archived'] = Variable<bool>(isArchived.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -567,6 +617,7 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
           ..write('isProtected: $isProtected, ')
           ..write('position: $position, ')
           ..write('createdAt: $createdAt, ')
+          ..write('isArchived: $isArchived, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1214,6 +1265,7 @@ typedef $$HabitsTableCreateCompanionBuilder = HabitsCompanion Function({
   Value<bool> isProtected,
   required int position,
   Value<DateTime> createdAt,
+  Value<bool> isArchived,
   Value<int> rowid,
 });
 typedef $$HabitsTableUpdateCompanionBuilder = HabitsCompanion Function({
@@ -1226,6 +1278,7 @@ typedef $$HabitsTableUpdateCompanionBuilder = HabitsCompanion Function({
   Value<bool> isProtected,
   Value<int> position,
   Value<DateTime> createdAt,
+  Value<bool> isArchived,
   Value<int> rowid,
 });
 
@@ -1321,6 +1374,11 @@ class $$HabitsTableFilterComposer
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isArchived => $composableBuilder(
+    column: $table.isArchived,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1428,6 +1486,11 @@ class $$HabitsTableOrderingComposer
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get isArchived => $composableBuilder(
+    column: $table.isArchived,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$HabitsTableAnnotationComposer
@@ -1471,6 +1534,11 @@ class $$HabitsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get isArchived => $composableBuilder(
+    column: $table.isArchived,
+    builder: (column) => column,
+  );
 
   Expression<T> habitLogsRefs<T extends Object>(
     Expression<T> Function($$HabitLogsTableAnnotationComposer a) f,
@@ -1560,6 +1628,7 @@ class $$HabitsTableTableManager
                 Value<bool> isProtected = const Value.absent(),
                 Value<int> position = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<bool> isArchived = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => HabitsCompanion(
                 id: id,
@@ -1571,6 +1640,7 @@ class $$HabitsTableTableManager
                 isProtected: isProtected,
                 position: position,
                 createdAt: createdAt,
+                isArchived: isArchived,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -1584,6 +1654,7 @@ class $$HabitsTableTableManager
                 Value<bool> isProtected = const Value.absent(),
                 required int position,
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<bool> isArchived = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => HabitsCompanion.insert(
                 id: id,
@@ -1595,6 +1666,7 @@ class $$HabitsTableTableManager
                 isProtected: isProtected,
                 position: position,
                 createdAt: createdAt,
+                isArchived: isArchived,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

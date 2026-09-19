@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
-
+import 'package:flutter/material.dart';
+import 'package:path/path.dart';
 import '../app_database.dart';
 import '../tables/habits.dart';
 
@@ -67,5 +68,16 @@ class HabitDao extends DatabaseAccessor<AppDatabase>
   /// Delete all habits.
   Future<int> deleteAll() {
     return delete(habits).go();
+  }
+  /// Archived a habit
+  Future<bool> archiveHabit(String habitId) async{
+    final updatedRows = await (update(habits)
+    ..where((h) => h.id.equals(habitId)))
+    .write(
+      const HabitsCompanion(
+        isArchived:Value(true),
+        ),
+      );
+    return updatedRows > 0;
   }
 }

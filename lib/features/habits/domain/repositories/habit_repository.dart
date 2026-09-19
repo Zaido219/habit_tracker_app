@@ -45,4 +45,7 @@ abstract class HabitRepository {
     String habitId,
     List<HabitReminder> reminders,
   );
+  
+  // Archives a habit
+  Future<bool> archiveHabit(String habitId);
 }

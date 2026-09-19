@@ -118,4 +118,11 @@ class HabitRepositoryImpl implements HabitRepository {
       }
     });
   }
+
+  @override
+  Future<bool> archiveHabit(String habitId)async{
+    return await _db.transaction(() async {
+      return await _habitDao.archiveHabit(habitId);
+    });
+  }
 }

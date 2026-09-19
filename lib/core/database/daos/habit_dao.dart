@@ -1,6 +1,4 @@
 import 'package:drift/drift.dart';
-import 'package:flutter/material.dart';
-import 'package:path/path.dart';
 import '../app_database.dart';
 import '../tables/habits.dart';
 
@@ -26,6 +24,7 @@ class HabitDao extends DatabaseAccessor<AppDatabase>
   /// when the database changes.
   Stream<List<Habit>> watchAll() {
     return (select(habits)
+          ..where((h) => h.isArchived.equals(false))
           ..orderBy([
             (h) => OrderingTerm(expression: h.position),
           ]))

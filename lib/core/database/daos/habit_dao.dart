@@ -12,6 +12,7 @@ class HabitDao extends DatabaseAccessor<AppDatabase>
   /// Get all habits ordered by their manual position.
   Future<List<Habit>> getAll() {
     return (select(habits)
+          ..where((h) => h.isArchived.equals(false))
           ..orderBy([
             (h) => OrderingTerm(expression: h.position),
           ]))

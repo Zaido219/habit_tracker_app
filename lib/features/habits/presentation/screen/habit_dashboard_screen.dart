@@ -19,6 +19,7 @@ class _HabitDashboardScreenState
     extends ConsumerState<HabitDashboardScreen> {
 
   Habit? _selectedHabit;
+  PersistentBottomSheetController? _bottomSheetController;
 
   Color _parseHabitColor(String colorHex) {
     var hex = colorHex

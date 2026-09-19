@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../providers/habit_dashboard_provider.dart';
 import '../../domain/models/habit.dart';
 
 class CreateHabitBottomSheet extends ConsumerStatefulWidget {
   final Habit? habitToEdit; // pass a habit object if editing
-  const CreateHabitBottomSheet({
-    super.key,
-    this.habitToEdit});
+  const CreateHabitBottomSheet({super.key, this.habitToEdit});
 
   @override
   ConsumerState<CreateHabitBottomSheet> createState() =>
@@ -16,7 +15,7 @@ class CreateHabitBottomSheet extends ConsumerStatefulWidget {
 
 class _CreateHabitBottomSheetState
     extends ConsumerState<CreateHabitBottomSheet> {
-    final _controller = TextEditingController();
+  final _controller = TextEditingController();
 
   // Palette to pick from — swap/extend these however you like
   static const _colorOptions = <Color>[
@@ -37,10 +36,11 @@ class _CreateHabitBottomSheetState
   }
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
-    if(widget.habitToEdit != null){
+    if (widget.habitToEdit != null) {
       _controller.text = widget.habitToEdit!.title;
+      // todo: add more habit state here
     }
   }
 
@@ -49,12 +49,26 @@ class _CreateHabitBottomSheetState
   }
 
   void _submit() {
-    final title = _controller.text;
-    if (title.trim().isNotEmpty) {
-      ref.read(habitDashboardProvider.notifier).addHabit(
-            title,
-            colorHex: _colorToHex(_selectedColor),
-          );
+    final title = _controller.text.trim();
+
+    if (title.isNotEmpty) {
+      final notifier = ref.read(habitDashboardProvider.notifier);
+      final selectedColorHex = _colorToHex(_selectedColor);
+
+      if (widget.habitToEdit != null) {
+        // 1. UPDATE LOGIC: Create an updated model instance using copyWith
+        final updatedHabit = widget.habitToEdit!.copyWith(
+          title: title,
+          colorHex: selectedColorHex,
+        );
+
+        // Call the notifier method to update the database record
+        notifier.updateHabit(updatedHabit);
+      } else {
+        // 2. CREATE LOGIC: Keep existing creation flow
+        notifier.addHabit(title, colorHex: selectedColorHex);
+      }
+
       Navigator.of(context).pop();
     }
   }
@@ -118,10 +132,7 @@ class _CreateHabitBottomSheetState
             }).toList(),
           ),
           const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: _submit,
-            child: const Text('Save Habit'),
-          ),
+          ElevatedButton(onPressed: _submit, child: const Text('Save Habit')),
           const SizedBox(height: 12),
         ],
       ),

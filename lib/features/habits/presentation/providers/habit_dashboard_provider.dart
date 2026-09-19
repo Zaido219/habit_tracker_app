@@ -1,6 +1,4 @@
 import 'dart:async';
-
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habit_tracker_app/features/habits/domain/models/habit_schedule.dart';
 
@@ -121,6 +119,10 @@ class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
         .listen((aggregatedLogs) {
           state = state.copyWith(logs: aggregatedLogs);
         });
+  }
+  /// Updates habit
+  Future<void> updateHabit(Habit updatedHabit) async {
+    await _repository.updateHabit(updatedHabit);
   }
 }
 

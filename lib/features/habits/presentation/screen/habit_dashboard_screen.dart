@@ -38,12 +38,18 @@ class _HabitDashboardScreenState
     BuildContext context,
     Habit habit,
   ) {
-    showBottomSheet(
+    _bottomSheetController = showBottomSheet(
       context: context,
       builder: (context) => CreateHabitBottomSheet(
         habitToEdit: habit,
+        onClose: (){
+          _bottomSheetController?.close();
+        },
       ),
     );
+    _bottomSheetController!.closed.then((_){
+      _bottomSheetController = null;
+    });
   }
 
   @override

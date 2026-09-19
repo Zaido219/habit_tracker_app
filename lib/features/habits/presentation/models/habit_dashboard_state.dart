@@ -1,3 +1,5 @@
+import "package:flutter/material.dart";
+
 import "../../domain/models/habit.dart";
 import "../../domain/models/habit_log.dart";
 
@@ -9,6 +11,7 @@ class HabitDashboardState{
   final List<HabitLog> logs;
   final List<DateTime> visibleDates;
   final bool isLoading;
+
 
   const HabitDashboardState({
     this.habits = const [],

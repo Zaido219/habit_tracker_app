@@ -1,3 +1,5 @@
+import 'dart:nativewrappers/_internal/vm/lib/ffi_allocation_patch.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/habit_dashboard_provider.dart';
@@ -5,7 +7,12 @@ import '../../domain/models/habit.dart';
 
 class CreateHabitBottomSheet extends ConsumerStatefulWidget {
   final Habit? habitToEdit; // pass a habit object if editing
-  const CreateHabitBottomSheet({super.key, this.habitToEdit});
+  final VoidCallback? onClose;
+
+  const CreateHabitBottomSheet({
+    super.key, 
+    this.habitToEdit,
+    this.onClose,});
 
   @override
   ConsumerState<CreateHabitBottomSheet> createState() =>
@@ -68,7 +75,7 @@ class _CreateHabitBottomSheetState
         notifier.addHabit(title, colorHex: selectedColorHex);
       }
 
-      Navigator.of(context).pop();
+      widget.onClose?.call();
     }
   }
 

@@ -37,9 +37,8 @@ class _HabitDashboardScreenState
     BuildContext context,
     Habit habit,
   ) {
-    showModalBottomSheet(
+    showBottomSheet(
       context: context,
-      isScrollControlled: true,
       builder: (context) => CreateHabitBottomSheet(
         habitToEdit: habit,
       ),

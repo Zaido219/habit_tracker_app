@@ -137,6 +137,10 @@ class HabitDashboardScreen extends ConsumerWidget {
                   ),
                 );
               },
+              onLongPress:(){
+                    // open bottom sheet for habit editing
+                    _showEditHabitBottomSheet(context, habit);
+              },
               child: Text(
                 habit.title,
                 style: const TextStyle(

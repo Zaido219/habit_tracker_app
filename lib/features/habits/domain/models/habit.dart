@@ -9,6 +9,7 @@ class Habit {
   final bool isProtected;
   final int position;
   final DateTime createdAt;
+  final bool isArchived;
 
 
   const Habit({
@@ -20,6 +21,7 @@ class Habit {
     required this.isProtected,
     required this.position,
     required this.createdAt,
+    required this.isArchived,
 
   });
 
@@ -34,6 +36,7 @@ class Habit {
       isProtected: isProtected,
       position: position,
       createdAt: createdAt,
+      isArchived: isArchived,
     );
   }
 
@@ -46,6 +49,7 @@ class Habit {
   bool? isProtected,
   int? position,
   DateTime? createdAt,
+  bool? isArchived,
 }) {
   return Habit(
     id: id ?? this.id,
@@ -56,6 +60,7 @@ class Habit {
     isProtected: isProtected ?? this.isProtected,
     position: position ?? this.position,
     createdAt: createdAt ?? this.createdAt,
+    isArchived: isArchived ?? this.isArchived,
   );
 }
 }

@@ -3,6 +3,7 @@ import '../../domain/models/habit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../analytics/presentation/providers/habit_analytics_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 class HabitDetailScreen extends ConsumerStatefulWidget {
   final Habit habit;
@@ -44,6 +45,8 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
               _buildStatsGrid(analytics),
               const SizedBox(height: 16),
               _buildCalendar(analytics),
+              const SizedBox(height: 24),
+              _buildCompletionGraph(analytics),
             ],
           ),
         ),
@@ -192,6 +195,167 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
       ),
     );
   }
+
+  Widget _buildCompletionGraph(HabitAnalytics analytics) {
+  final today = DateTime(
+    DateTime.now().year,
+    DateTime.now().month,
+    DateTime.now().day,
+  );
+
+  const daysToShow = 30;
+
+  final dates = List.generate(
+    daysToShow,
+    (index) => today.subtract(
+      Duration(days: daysToShow - 1 - index),
+    ),
+  );
+
+  final spots = dates.asMap().entries.map((entry) {
+    final index = entry.key;
+    final date = entry.value;
+
+    final completionCount = analytics.logs.where((log) {
+      final logDate = DateTime(
+        log.completedAt.year,
+        log.completedAt.month,
+        log.completedAt.day,
+      );
+
+      return logDate == date;
+    }).length;
+
+    return FlSpot(
+      index.toDouble(),
+      completionCount.toDouble(),
+    );
+  }).toList();
+
+  return Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.grey.shade100,
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Completion Over Time',
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+
+        const SizedBox(height: 4),
+
+        Text(
+          'Last 30 days',
+          style: TextStyle(
+            fontSize: 11,
+            color: Colors.grey.shade600,
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
+        SizedBox(
+          height: 220,
+          child: LineChart(
+            LineChartData(
+              minY: 0,
+              maxY: 1.2,
+
+              gridData: FlGridData(
+                show: true,
+                horizontalInterval: 1,
+              ),
+
+              borderData: FlBorderData(
+                show: false,
+              ),
+
+              titlesData: FlTitlesData(
+                topTitles: const AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: false,
+                  ),
+                ),
+
+                rightTitles: const AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: false,
+                  ),
+                ),
+
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    interval: 1,
+                    reservedSize: 30,
+                    getTitlesWidget: (value, meta) {
+                      return Text(
+                        value.toInt().toString(),
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey.shade600,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    interval: 5,
+                    getTitlesWidget: (value, meta) {
+                      final index = value.toInt();
+
+                      if (index < 0 || index >= dates.length) {
+                        return const SizedBox();
+                      }
+
+                      return Text(
+                        DateFormat('d').format(dates[index]),
+                        style: TextStyle(
+                          fontSize: 9,
+                          color: Colors.grey.shade600,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+
+              lineBarsData: [
+                LineChartBarData(
+                  spots: spots,
+                  isCurved: false,
+                  barWidth: 2,
+                  color: accentColor,
+
+                  dotData: FlDotData(
+                    show: true,
+                  ),
+
+                  belowBarData: BarAreaData(
+                    show: true,
+                    color: accentColor.withValues(
+                      alpha: 0.08,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
 }
 
 class _StatData {

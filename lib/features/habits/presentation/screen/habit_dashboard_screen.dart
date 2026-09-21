@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:habit_tracker_app/features/habits/presentation/widgets/create_habit_bottom_sheet.dart';
+
 import 'package:intl/intl.dart';
+
 import 'habit_detail_screen.dart';
+
 import '../providers/habit_dashboard_provider.dart';
+
 import 'package:habit_tracker_app/features/habits/domain/models/habit.dart';
 
 class HabitDashboardScreen extends ConsumerStatefulWidget {
@@ -18,7 +24,83 @@ class _HabitDashboardScreenState
     extends ConsumerState<HabitDashboardScreen> {
 
   Habit? _selectedHabit;
+
   PersistentBottomSheetController? _bottomSheetController;
+
+  // Width of the fixed habit-name column.
+  static const double _habitNameWidth = 180.0;
+
+  // Width of each date column.
+  static const double _dateColumnWidth = 60.0;
+
+  // Controls horizontal scrolling of the dates.
+  final ScrollController _horizontalController =
+      ScrollController();
+
+  // These two control vertical scrolling.
+  final ScrollController _leftVerticalController =
+      ScrollController();
+
+  final ScrollController _rightVerticalController =
+      ScrollController();
+
+  bool _isSyncingVertical = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _leftVerticalController.addListener(
+      _syncLeftToRight,
+    );
+
+    _rightVerticalController.addListener(
+      _syncRightToLeft,
+    );
+  }
+
+  void _syncLeftToRight() {
+    if (_isSyncingVertical) return;
+
+    if (!_rightVerticalController.hasClients) return;
+
+    _isSyncingVertical = true;
+
+    _rightVerticalController.jumpTo(
+      _leftVerticalController.offset.clamp(
+        0.0,
+        _rightVerticalController.position.maxScrollExtent,
+      ),
+    );
+
+    _isSyncingVertical = false;
+  }
+
+  void _syncRightToLeft() {
+    if (_isSyncingVertical) return;
+
+    if (!_leftVerticalController.hasClients) return;
+
+    _isSyncingVertical = true;
+
+    _leftVerticalController.jumpTo(
+      _rightVerticalController.offset.clamp(
+        0.0,
+        _leftVerticalController.position.maxScrollExtent,
+      ),
+    );
+
+    _isSyncingVertical = false;
+  }
+
+  @override
+  void dispose() {
+    _horizontalController.dispose();
+    _leftVerticalController.dispose();
+    _rightVerticalController.dispose();
+
+    super.dispose();
+  }
 
   Color _parseHabitColor(String colorHex) {
     var hex = colorHex
@@ -41,12 +123,13 @@ class _HabitDashboardScreenState
       context: context,
       builder: (context) => CreateHabitBottomSheet(
         habitToEdit: habit,
-        onClose: (){
+        onClose: () {
           _bottomSheetController?.close();
         },
       ),
     );
-    _bottomSheetController!.closed.then((_){
+
+    _bottomSheetController!.closed.then((_) {
       _bottomSheetController = null;
     });
   }
@@ -54,7 +137,9 @@ class _HabitDashboardScreenState
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(habitDashboardProvider);
-    final notifier = ref.read(habitDashboardProvider.notifier);
+
+    final notifier =
+        ref.read(habitDashboardProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(
@@ -67,11 +152,16 @@ class _HabitDashboardScreenState
           if (_selectedHabit != null) ...[
             IconButton(
               tooltip: 'Archive habit',
-              icon: const Icon(Icons.archive_outlined),
+              icon: const Icon(
+                Icons.archive_outlined,
+              ),
               onPressed: () async {
-                final habitId = _selectedHabit!.id;
+                final habitId =
+                    _selectedHabit!.id;
 
-                await notifier.archiveHabit(habitId);
+                await notifier.archiveHabit(
+                  habitId,
+                );
 
                 if (mounted) {
                   setState(() {
@@ -116,74 +206,271 @@ class _HabitDashboardScreenState
                     'No habits yet. Tap + to add one!',
                   ),
                 )
-              : Column(
-                  children: [
-                    _buildDateHeader(state.visibleDates),
-
-                    const Divider(height: 1),
-
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: state.habits.length,
-                        itemBuilder: (context, index) {
-                          final habit = state.habits[index];
-
-                          return _buildHabitRow(
-                            context: context,
-                            habit: habit,
-                            visibleDates: state.visibleDates,
-                            state: state,
-                            onToggleDate: (date) {
-                              notifier.toggleHabitLog(
-                                habit.id,
-                                date,
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  ],
+              : _buildHabitTable(
+                  context,
+                  state,
+                  notifier,
                 ),
     );
   }
 
-  Widget _buildDateHeader(List<DateTime> visibleDates) {
-    return Padding(
+  Widget _buildHabitTable(
+    BuildContext context,
+    dynamic state,
+    dynamic notifier,
+  ) {
+    final totalDateWidth =
+        state.visibleDates.length *
+            _dateColumnWidth;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+
+        // =====================================================
+        // FIXED LEFT SIDE
+        // =====================================================
+
+        SizedBox(
+          width: _habitNameWidth,
+          child: Column(
+            children: [
+
+              // Header above habit names.
+              const SizedBox(
+                height: 70,
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      left: 16,
+                    ),
+                    child: Text(
+                      'Habits',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              const Divider(
+                height: 1,
+              ),
+
+              // Habit names.
+              Expanded(
+                child: ListView.builder(
+                  controller:
+                      _leftVerticalController,
+                  itemCount:
+                      state.habits.length,
+                  itemBuilder:
+                      (context, index) {
+
+                    final habit =
+                        state.habits[index];
+
+                    return _buildHabitNameRow(
+                      context,
+                      habit,
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // =====================================================
+        // RIGHT SIDE - HORIZONTALLY SCROLLABLE
+        // =====================================================
+
+        Expanded(
+          child: SingleChildScrollView(
+            controller:
+                _horizontalController,
+            scrollDirection:
+                Axis.horizontal,
+
+            child: SizedBox(
+              width: totalDateWidth,
+
+              child: Column(
+                children: [
+
+                  // DATE HEADER
+                  _buildDateHeader(
+                    state.visibleDates,
+                  ),
+
+                  const Divider(
+                    height: 1,
+                  ),
+
+                  // CHECKBOXES
+                  Expanded(
+                    child: ListView.builder(
+                      controller:
+                          _rightVerticalController,
+                      itemCount:
+                          state.habits.length,
+                      itemBuilder:
+                          (context, index) {
+
+                        final habit =
+                            state.habits[index];
+
+                        return _buildCheckboxRow(
+                          context: context,
+                          habit: habit,
+                          visibleDates:
+                              state.visibleDates,
+                          state: state,
+                          onToggleDate:
+                              (date) {
+                            notifier
+                                .toggleHabitLog(
+                              habit.id,
+                              date,
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ===========================================================
+  // FIXED HABIT NAME ROW
+  // ===========================================================
+
+  Widget _buildHabitNameRow(
+    BuildContext context,
+    Habit habit,
+  ) {
+    final isSelected =
+        _selectedHabit?.id == habit.id;
+
+    return Container(
+      height: 57,
+
       padding: const EdgeInsets.symmetric(
-        vertical: 12.0,
-        horizontal: 16.0,
+        horizontal: 16,
       ),
-      child: Row(
-        children: [
-          const Expanded(
-            flex: 3,
-            child: SizedBox.shrink(),
+
+      decoration: BoxDecoration(
+        color: isSelected
+            ? Theme.of(context)
+                .colorScheme
+                .primary
+                .withValues(alpha: 0.08)
+            : null,
+
+        border: const Border(
+          bottom: BorderSide(
+            color: Colors.black12,
+            width: 0.5,
+          ),
+        ),
+      ),
+
+      alignment: Alignment.centerLeft,
+
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  HabitDetailScreen(
+                habit: habit,
+              ),
+            ),
+          );
+        },
+
+        onLongPress: () {
+          setState(() {
+            _selectedHabit = habit;
+          });
+
+          _showEditHabitBottomSheet(
+            context,
+            habit,
+          );
+        },
+
+        child: Text(
+          habit.title,
+
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
           ),
 
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+    );
+  }
+
+  // ===========================================================
+  // DATE HEADER
+  // ===========================================================
+
+  Widget _buildDateHeader(
+    List<DateTime> visibleDates,
+  ) {
+    return SizedBox(
+      height: 70,
+
+      child: Row(
+        children: [
           ...visibleDates.map(
-            (date) => Expanded(
-              flex: 1,
+            (date) => SizedBox(
+              width: _dateColumnWidth,
+
               child: Column(
+                mainAxisAlignment:
+                    MainAxisAlignment.center,
+
                 children: [
                   Text(
                     DateFormat('E')
                         .format(date)
                         .toUpperCase(),
+
                     style: const TextStyle(
                       fontSize: 10,
-                      fontWeight: FontWeight.bold,
+                      fontWeight:
+                          FontWeight.bold,
                       color: Colors.grey,
                     ),
                   ),
 
-                  const SizedBox(height: 2),
+                  const SizedBox(
+                    height: 2,
+                  ),
 
                   Text(
-                    DateFormat('d').format(date),
+                    DateFormat('d')
+                        .format(date),
+
                     style: const TextStyle(
                       fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                      fontWeight:
+                          FontWeight.w600,
                     ),
                   ),
                 ],
@@ -195,28 +482,29 @@ class _HabitDashboardScreenState
     );
   }
 
-  Widget _buildHabitRow({
+  // ===========================================================
+  // CHECKBOX ROW
+  // ===========================================================
+
+  Widget _buildCheckboxRow({
     required BuildContext context,
     required Habit habit,
     required List<DateTime> visibleDates,
     required dynamic state,
-    required Function(DateTime) onToggleDate,
+    required Function(DateTime)
+        onToggleDate,
   }) {
-    final habitColor = _parseHabitColor(habit.colorHex);
-
-    debugPrint(
-      '${habit.title}: '
-      'raw=${habit.colorHex}, '
-      'parsed=$habitColor',
+    final habitColor =
+        _parseHabitColor(
+      habit.colorHex,
     );
 
-    final isSelected = _selectedHabit?.id == habit.id;
+    final isSelected =
+        _selectedHabit?.id == habit.id;
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        vertical: 8.0,
-        horizontal: 16.0,
-      ),
+      height: 57,
+
       decoration: BoxDecoration(
         color: isSelected
             ? Theme.of(context)
@@ -224,6 +512,7 @@ class _HabitDashboardScreenState
                 .primary
                 .withValues(alpha: 0.08)
             : null,
+
         border: const Border(
           bottom: BorderSide(
             color: Colors.black12,
@@ -231,106 +520,95 @@ class _HabitDashboardScreenState
           ),
         ),
       ),
+
       child: Row(
         children: [
-          Expanded(
-            flex: 3,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        HabitDetailScreen(habit: habit),
-                  ),
-                );
-              },
+          ...visibleDates.map(
+            (date) {
 
-              onLongPress: () {
-                setState(() {
-                  _selectedHabit = habit;
-                });
-
-                _showEditHabitBottomSheet(
-                  context, 
-                  habit,
-                  );
-              },
-
-              child: Text(
-                habit.title,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ),
-
-          ...visibleDates.map((date) {
-            final targetDate = DateTime(
-              date.year,
-              date.month,
-              date.day,
-            );
-
-            final isCompleted = state.logs.any((log) {
-              if (log.habitId != habit.id) {
-                return false;
-              }
-
-              final logDate = DateTime(
-                log.completedAt.year,
-                log.completedAt.month,
-                log.completedAt.day,
+              final targetDate =
+                  DateTime(
+                date.year,
+                date.month,
+                date.day,
               );
 
-              return logDate.isAtSameMomentAs(targetDate);
-            });
+              final isCompleted =
+                  state.logs.any((log) {
 
-            return Expanded(
-              flex: 1,
-              child: GestureDetector(
-                onTap: () => onToggleDate(date),
+                if (log.habitId !=
+                    habit.id) {
+                  return false;
+                }
 
-                child: Center(
-                  child: AnimatedContainer(
-                    duration: const Duration(
-                      milliseconds: 150,
-                    ),
-                    width: 28,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      color: isCompleted
-                          ? habitColor
-                          : Colors.transparent,
+                final logDate =
+                    DateTime(
+                  log.completedAt.year,
+                  log.completedAt.month,
+                  log.completedAt.day,
+                );
 
-                      borderRadius:
-                          BorderRadius.circular(6),
+                return logDate
+                    .isAtSameMomentAs(
+                  targetDate,
+                );
+              });
 
-                      border: Border.all(
+              return SizedBox(
+                width: _dateColumnWidth,
+
+                child: GestureDetector(
+                  onTap: () =>
+                      onToggleDate(date),
+
+                  child: Center(
+                    child: AnimatedContainer(
+                      duration:
+                          const Duration(
+                        milliseconds: 150,
+                      ),
+
+                      width: 28,
+                      height: 28,
+
+                      decoration:
+                          BoxDecoration(
                         color: isCompleted
                             ? habitColor
-                            : habitColor.withValues(
-                                alpha: 0.5,
-                              ),
-                        width: 1.5,
-                      ),
-                    ),
+                            : Colors
+                                .transparent,
 
-                    child: isCompleted
-                        ? const Icon(
-                            Icons.check,
-                            size: 18,
-                            color: Colors.white,
-                          )
-                        : null,
+                        borderRadius:
+                            BorderRadius
+                                .circular(6),
+
+                        border:
+                            Border.all(
+                          color: isCompleted
+                              ? habitColor
+                              : habitColor
+                                  .withValues(
+                                  alpha: 0.5,
+                                ),
+
+                          width: 1.5,
+                        ),
+                      ),
+
+                      child: isCompleted
+                          ? const Icon(
+                              Icons.check,
+                              size: 18,
+                              color:
+                                  Colors.white,
+                            )
+                          : null,
+                    ),
                   ),
                 ),
-              ),
-            );
-          }),
+              );
+            },
+          ),
         ],
       ),
     );

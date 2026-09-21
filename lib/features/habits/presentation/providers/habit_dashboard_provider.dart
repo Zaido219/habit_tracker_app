@@ -26,7 +26,7 @@ class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final visibleDates = List.generate(
-      5,
+      365,
       (index) => today.subtract(Duration(days: index)),
     );
 

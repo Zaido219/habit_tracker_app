@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+
 import '../../domain/models/habit.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../analytics/presentation/providers/habit_analytics_provider.dart';
+
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 
@@ -18,7 +22,10 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
   bool isWeekView = false;
 
   Color get accentColor {
-    var hex = widget.habit.colorHex.replaceFirst('#', '').replaceFirst('0x', '').replaceFirst('0X', '');
+    var hex = widget.habit.colorHex
+        .replaceFirst('#', '')
+        .replaceFirst('0x', '')
+        .replaceFirst('0X', '');
     if (hex.length == 6) hex = 'FF$hex';
     return Color(int.parse(hex, radix: 16));
   }
@@ -26,13 +33,19 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final analyticsAsync = ref.watch(
-      habitAnalyticsProvider((habitId: widget.habit.id, schedule: widget.habit.schedule)),
+      habitAnalyticsProvider((
+        habitId: widget.habit.id,
+        schedule: widget.habit.schedule,
+      )),
     );
 
     return Scaffold(
       appBar: AppBar(
         leading: const BackButton(),
-        title: Text(widget.habit.title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+        title: Text(
+          widget.habit.title,
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+        ),
       ),
       body: analyticsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -56,10 +69,26 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
 
   Widget _buildStatsGrid(HabitAnalytics analytics) {
     final stats = [
-      _StatData(Icons.local_fire_department, 'Current streak', '${analytics.streakStats.currentStreak} days'),
-      _StatData(Icons.check_circle, 'Completions', '${analytics.streakStats.totalCompletions} times'),
-      _StatData(Icons.event_busy, 'Missed days', '${analytics.streakStats.missedDays} days'),
-      _StatData(Icons.pie_chart, 'Score', '${(analytics.consistencyStats.scorePercent * 100).toStringAsFixed(0)}%'),
+      _StatData(
+        Icons.local_fire_department,
+        'Current streak',
+        '${analytics.streakStats.currentStreak} days',
+      ),
+      _StatData(
+        Icons.check_circle,
+        'Completions',
+        '${analytics.streakStats.totalCompletions} times',
+      ),
+      _StatData(
+        Icons.event_busy,
+        'Missed days',
+        '${analytics.streakStats.missedDays} days',
+      ),
+      _StatData(
+        Icons.pie_chart,
+        'Score',
+        '${(analytics.consistencyStats.scorePercent * 100).toStringAsFixed(0)}%',
+      ),
     ];
 
     return GridView.builder(
@@ -76,18 +105,30 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
         final stat = stats[index];
         return Container(
           padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(10)),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(10),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(stat.label, style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
+              Text(
+                stat.label,
+                style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+              ),
               const SizedBox(height: 4),
               Row(
                 children: [
                   Icon(stat.icon, size: 14, color: accentColor),
                   const SizedBox(width: 4),
-                  Text(stat.value, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                  Text(
+                    stat.value,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -98,7 +139,11 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
   }
 
   Widget _buildCalendar(HabitAnalytics analytics) {
-    final today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    final today = DateTime(
+      DateTime.now().year,
+      DateTime.now().month,
+      DateTime.now().day,
+    );
     const numWeeks = 18;
 
     // Most recent Sunday (start of current week)
@@ -112,7 +157,11 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
 
     bool isCompletedOn(DateTime date) {
       return analytics.logs.any((log) {
-        final logDate = DateTime(log.completedAt.year, log.completedAt.month, log.completedAt.day);
+        final logDate = DateTime(
+          log.completedAt.year,
+          log.completedAt.month,
+          log.completedAt.day,
+        );
         return logDate == date;
       });
     }
@@ -137,13 +186,22 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
           Column(
             children: [
               const SizedBox(height: 20),
-              ...List.generate(7, (i) => SizedBox(
-                width: 24,
-                height: 28,
-                child: Center(
-                  child: Text(dayLabels[i], style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+              ...List.generate(
+                7,
+                (i) => SizedBox(
+                  width: 24,
+                  height: 28,
+                  child: Center(
+                    child: Text(
+                      dayLabels[i],
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
+                  ),
                 ),
-              )),
+              ),
             ],
           ),
           // One column per week
@@ -155,7 +213,13 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
                   height: 20,
                   width: 30,
                   child: label != null
-                      ? Text(label, style: TextStyle(fontSize: 10, color: Colors.grey.shade500))
+                      ? Text(
+                          label,
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey.shade500,
+                          ),
+                        )
                       : null,
                 ),
                 ...List.generate(7, (dayIndex) {
@@ -166,14 +230,17 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
                   return Container(
                     width: 26,
                     height: 26,
-                    margin: const EdgeInsets.symmetric(vertical: 1, horizontal: 2),
+                    margin: const EdgeInsets.symmetric(
+                      vertical: 1,
+                      horizontal: 2,
+                    ),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: isFuture
                           ? Colors.transparent
                           : completed
-                              ? accentColor
-                              : Colors.grey.shade200,
+                          ? accentColor
+                          : Colors.grey.shade200,
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: isFuture
@@ -183,7 +250,9 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w500,
-                              color: completed ? Colors.white : Colors.grey.shade700,
+                              color: completed
+                                  ? Colors.white
+                                  : Colors.grey.shade700,
                             ),
                           ),
                   );
@@ -197,165 +266,177 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
   }
 
   Widget _buildCompletionGraph(HabitAnalytics analytics) {
-  final today = DateTime(
-    DateTime.now().year,
-    DateTime.now().month,
-    DateTime.now().day,
-  );
+    final today = DateTime(
+      DateTime.now().year,
+      DateTime.now().month,
+      DateTime.now().day,
+    );
 
-  const daysToShow = 30;
+    const weeksToShow = 12;
 
-  final dates = List.generate(
-    daysToShow,
-    (index) => today.subtract(
-      Duration(days: daysToShow - 1 - index),
-    ),
-  );
+    // Find the Monday of the current week.
+    final currentWeekStart = today.subtract(
+      Duration(days: today.weekday - DateTime.monday),
+    );
 
-  final spots = dates.asMap().entries.map((entry) {
-    final index = entry.key;
-    final date = entry.value;
+    // Create 12 weekly periods, oldest first.
+    final weekStarts = List.generate(
+      weeksToShow,
+      (index) => currentWeekStart.subtract(
+        Duration(days: (weeksToShow - 1 - index) * 7),
+      ),
+    );
 
-    final completionCount = analytics.logs.where((log) {
-      final logDate = DateTime(
+    // Convert logs into unique calendar dates.
+    final completedDates = analytics.logs.map((log) {
+      return DateTime(
         log.completedAt.year,
         log.completedAt.month,
         log.completedAt.day,
       );
+    }).toSet();
 
-      return logDate == date;
-    }).length;
+    final spots = weekStarts.asMap().entries.map((entry) {
+      final index = entry.key;
+      final weekStart = entry.value;
+      final weekEnd = weekStart.add(const Duration(days: 7));
 
-    return FlSpot(
-      index.toDouble(),
-      completionCount.toDouble(),
-    );
-  }).toList();
+      // For completed weeks, 7 days are expected.
+      // For the current week, only count the days that have happened so far.
+      final isCurrentWeek = weekStart == currentWeekStart;
 
-  return Container(
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: Colors.grey.shade100,
-      borderRadius: BorderRadius.circular(12),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Completion Over Time',
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
+      final expectedDays = isCurrentWeek
+          ? today.difference(weekStart).inDays + 1
+          : 7;
+
+      final completedDays = completedDates.where((date) {
+        return !date.isBefore(weekStart) && date.isBefore(weekEnd);
+      }).length;
+
+      final score = expectedDays == 0
+          ? 0.0
+          : (completedDays / expectedDays) * 100;
+
+      return FlSpot(index.toDouble(), score.clamp(0, 100).toDouble());
+    }).toList();
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Score',
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
           ),
-        ),
 
-        const SizedBox(height: 4),
+          const SizedBox(height: 4),
 
-        Text(
-          'Last 30 days',
-          style: TextStyle(
-            fontSize: 11,
-            color: Colors.grey.shade600,
+          Text(
+            'Last 12 weeks',
+            style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
           ),
-        ),
 
-        const SizedBox(height: 20),
+          const SizedBox(height: 20),
 
-        SizedBox(
-          height: 220,
-          child: LineChart(
-            LineChartData(
-              minY: 0,
-              maxY: 1.2,
+          SizedBox(
+            height: 220,
+            child: LineChart(
+              LineChartData(
+                minY: 0,
+                maxY: 100,
 
-              gridData: FlGridData(
-                show: true,
-                horizontalInterval: 1,
-              ),
+                gridData: FlGridData(show: true, horizontalInterval: 20),
 
-              borderData: FlBorderData(
-                show: false,
-              ),
+                borderData: FlBorderData(show: false),
 
-              titlesData: FlTitlesData(
-                topTitles: const AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: false,
-                  ),
-                ),
-
-                rightTitles: const AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: false,
-                  ),
-                ),
-
-                leftTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    interval: 1,
-                    reservedSize: 30,
-                    getTitlesWidget: (value, meta) {
-                      return Text(
-                        value.toInt().toString(),
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.grey.shade600,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    interval: 5,
-                    getTitlesWidget: (value, meta) {
-                      final index = value.toInt();
-
-                      if (index < 0 || index >= dates.length) {
-                        return const SizedBox();
-                      }
-
-                      return Text(
-                        DateFormat('d').format(dates[index]),
-                        style: TextStyle(
-                          fontSize: 9,
-                          color: Colors.grey.shade600,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-
-              lineBarsData: [
-                LineChartBarData(
-                  spots: spots,
-                  isCurved: false,
-                  barWidth: 2,
-                  color: accentColor,
-
-                  dotData: FlDotData(
-                    show: true,
+                titlesData: FlTitlesData(
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
                   ),
 
-                  belowBarData: BarAreaData(
-                    show: true,
-                    color: accentColor.withValues(
-                      alpha: 0.08,
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      interval: 20,
+                      reservedSize: 40,
+                      getTitlesWidget: (value, meta) {
+                        return Text(
+                          '${value.toInt()}%',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey.shade600,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      interval: 1,
+                      getTitlesWidget: (value, meta) {
+                        final index = value.toInt();
+
+                        if (index < 0 || index >= weekStarts.length) {
+                          return const SizedBox();
+                        }
+
+                        final date = weekStarts[index];
+
+                        // Show month when the month changes.
+                        if (index == 0 ||
+                            date.month != weekStarts[index - 1].month) {
+                          return Text(
+                            DateFormat('MMM').format(date),
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.grey.shade600,
+                            ),
+                          );
+                        }
+
+                        return Text(
+                          DateFormat('d').format(date),
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey.shade600,
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),
-              ],
+
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: spots,
+                    isCurved: false,
+                    barWidth: 3,
+                    color: accentColor,
+                    dotData: const FlDotData(show: true),
+                    belowBarData: BarAreaData(
+                      show: true,
+                      color: accentColor.withValues(alpha: 0.08),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 }
 
 class _StatData {

@@ -64,6 +64,12 @@ class _CreateHabitBottomSheetState
 
   void _submit() {
     final title = _controller.text.trim();
+    final time = _reminderTime;
+    final reminderTime = time == null
+        ? null
+        : '${time.hour.toString().padLeft(2, '0')}:'
+              '${time.minute.toString().padLeft(2, '0')}';
+
 
     if (title.isNotEmpty) {
       final notifier = ref.read(habitDashboardProvider.notifier);
@@ -80,7 +86,7 @@ class _CreateHabitBottomSheetState
         notifier.updateHabit(updatedHabit);
       } else {
         // 2. CREATE LOGIC: Keep existing creation flow
-        notifier.addHabit(title, colorHex: selectedColorHex);
+        notifier.addHabit(title, reminderTime:reminderTime,  colorHex: selectedColorHex);
       }
 
       widget.onClose?.call();

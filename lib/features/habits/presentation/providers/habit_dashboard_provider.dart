@@ -86,7 +86,7 @@ class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
   }
 
   /// Creates a new habit and persists it via the repository
-  Future<void> addHabit(String title,  String? reminderTime ,{String colorHex = '0xFF6750A4'}) async {
+  Future<void> addHabit(String title, {String? reminderTime , String colorHex = '0xFF6750A4'}) async {
     if (title.trim().isEmpty) return;
 
     final habitId = DateTime.now().millisecondsSinceEpoch.toString(); 

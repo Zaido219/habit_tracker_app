@@ -145,7 +145,42 @@ class _HabitDashboardScreenState extends ConsumerState<HabitDashboardScreen> {
                 }
               },
             ),
+            IconButton(
+              tooltip: 'Delete habit',
+              icon: const Icon(Icons.delete_outline),
+              onPressed: () async {
+                final habit = _selectedHabit!;
 
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (dialogContext) => AlertDialog(
+                    title: const Text('Delete habit?'),
+                    content: Text(
+                      'Delete "${habit.title}" and its completion history? This cannot be undone.',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(dialogContext, false),
+                        child: const Text('Cancel'),
+                      ),
+                      FilledButton(
+                        onPressed: () => Navigator.pop(dialogContext, true),
+                        child: const Text('Delete'),
+                      ),
+                    ],
+                  ),
+                );
+
+                if (confirmed != true || !mounted) return;
+
+                _bottomSheetController?.close();
+                await notifier.deleteHabit(habit.id);
+
+                if (mounted) {
+                  setState(() => _selectedHabit = null);
+                }
+              },
+            ),
             IconButton(
               tooltip: 'Cancel',
               icon: const Icon(Icons.close),

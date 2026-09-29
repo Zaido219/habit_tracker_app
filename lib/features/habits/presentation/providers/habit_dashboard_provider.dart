@@ -141,6 +141,10 @@ class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
   Future<void> archiveHabit(String habitId ) async {
     await _repository.archiveHabit(habitId);
   }
+  
+  Future<void> deleteHabit(String habitId) async {
+    await _repository.deleteHabit(habitId);
+  }
 }
 
 final habitDashboardProvider =

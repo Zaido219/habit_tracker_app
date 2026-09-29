@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../providers/habit_dashboard_provider.dart';
 import '../../domain/models/habit.dart';
 
@@ -7,10 +8,7 @@ class CreateHabitBottomSheet extends ConsumerStatefulWidget {
   final Habit? habitToEdit; // pass a habit object if editing
   final VoidCallback? onClose;
 
-  const CreateHabitBottomSheet({
-    super.key, 
-    this.habitToEdit,
-    this.onClose,});
+  const CreateHabitBottomSheet({super.key, this.habitToEdit, this.onClose});
 
   @override
   ConsumerState<CreateHabitBottomSheet> createState() =>
@@ -32,6 +30,7 @@ class _CreateHabitBottomSheetState
   ];
 
   Color _selectedColor = _colorOptions.first;
+  TimeOfDay? _reminderTime;
 
   @override
   void dispose() {
@@ -45,6 +44,17 @@ class _CreateHabitBottomSheetState
     if (widget.habitToEdit != null) {
       _controller.text = widget.habitToEdit!.title;
       // todo: add more habit state here
+    }
+  }
+
+  Future<void> _pickReminderDate() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _reminderTime ?? const TimeOfDay(hour: 8, minute: 0),
+    );
+
+    if (picked != null) {
+      setState(() => _reminderTime = picked);
     }
   }
 
@@ -104,6 +114,20 @@ class _CreateHabitBottomSheetState
             ),
             onSubmitted: (_) => _submit(),
           ),
+          const SizedBox(height: 16),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Reminder'),
+            subtitle: Text(_reminderTime?.format(context) ?? 'Not set'),
+            trailing: IconButton(
+              tooltip: 'Choose reminder time',
+              icon: const Icon(Icons.access_time),
+              onPressed: _pickReminderDate,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(onPressed: _submit, child: const Text('Save Habit')),
+          const SizedBox(height: 12),
           const SizedBox(height: 16),
           const Text(
             'Color',

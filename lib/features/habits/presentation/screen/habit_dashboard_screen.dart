@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habit_tracker_app/features/habits/presentation/widgets/create_habit_bottom_sheet.dart';
 import 'package:intl/intl.dart';
+
 import 'habit_detail_screen.dart';
 import '../providers/habit_dashboard_provider.dart';
-import 'package:habit_tracker_app/features/habits/domain/models/habit.dart';
 
+import 'package:habit_tracker_app/features/habits/domain/models/habit.dart';
+import 'package:habit_tracker_app/core/notifications/notification_service.dart';
 
 class HabitDashboardScreen extends ConsumerStatefulWidget {
   const HabitDashboardScreen({super.key});
@@ -15,9 +17,7 @@ class HabitDashboardScreen extends ConsumerStatefulWidget {
       _HabitDashboardScreenState();
 }
 
-class _HabitDashboardScreenState
-    extends ConsumerState<HabitDashboardScreen> {
-
+class _HabitDashboardScreenState extends ConsumerState<HabitDashboardScreen> {
   Habit? _selectedHabit;
 
   PersistentBottomSheetController? _bottomSheetController;
@@ -29,15 +29,12 @@ class _HabitDashboardScreenState
   static const double _dateColumnWidth = 60.0;
 
   // Controls horizontal scrolling of the dates.
-  final ScrollController _horizontalController =
-      ScrollController();
+  final ScrollController _horizontalController = ScrollController();
 
   // These two control vertical scrolling.
-  final ScrollController _leftVerticalController =
-      ScrollController();
+  final ScrollController _leftVerticalController = ScrollController();
 
-  final ScrollController _rightVerticalController =
-      ScrollController();
+  final ScrollController _rightVerticalController = ScrollController();
 
   bool _isSyncingVertical = false;
 
@@ -45,13 +42,9 @@ class _HabitDashboardScreenState
   void initState() {
     super.initState();
 
-    _leftVerticalController.addListener(
-      _syncLeftToRight,
-    );
+    _leftVerticalController.addListener(_syncLeftToRight);
 
-    _rightVerticalController.addListener(
-      _syncRightToLeft,
-    );
+    _rightVerticalController.addListener(_syncRightToLeft);
   }
 
   void _syncLeftToRight() {
@@ -110,10 +103,7 @@ class _HabitDashboardScreenState
     return Color(int.parse(hex, radix: 16));
   }
 
-  void _showEditHabitBottomSheet(
-    BuildContext context,
-    Habit habit,
-  ) {
+  void _showEditHabitBottomSheet(BuildContext context, Habit habit) {
     _bottomSheetController = showBottomSheet(
       context: context,
       builder: (context) => CreateHabitBottomSheet(
@@ -133,30 +123,20 @@ class _HabitDashboardScreenState
   Widget build(BuildContext context) {
     final state = ref.watch(habitDashboardProvider);
 
-    final notifier =
-        ref.read(habitDashboardProvider.notifier);
+    final notifier = ref.read(habitDashboardProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          _selectedHabit == null
-              ? 'Habits'
-              : _selectedHabit!.title,
-        ),
+        title: Text(_selectedHabit == null ? 'Habits' : _selectedHabit!.title),
         actions: [
           if (_selectedHabit != null) ...[
             IconButton(
               tooltip: 'Archive habit',
-              icon: const Icon(
-                Icons.archive_outlined,
-              ),
+              icon: const Icon(Icons.archive_outlined),
               onPressed: () async {
-                final habitId =
-                    _selectedHabit!.id;
+                final habitId = _selectedHabit!.id;
 
-                await notifier.archiveHabit(
-                  habitId,
-                );
+                await notifier.archiveHabit(habitId);
 
                 if (mounted) {
                   setState(() {
@@ -183,29 +163,25 @@ class _HabitDashboardScreenState
                 showModalBottomSheet(
                   context: context,
                   isScrollControlled: true,
-                  builder: (context) =>
-                      const CreateHabitBottomSheet(),
+                  builder: (context) => const CreateHabitBottomSheet(),
                 );
               },
             ),
+          IconButton(
+            tooltip: 'Test notification',
+            icon: const Icon(Icons.notifications_active_outlined),
+            onPressed: () async {
+              await NotificationService.showTestNotification();
+            },
+          ),
         ],
       ),
 
       body: state.isLoading
-          ? const Center(
-              child: CircularProgressIndicator(),
-            )
+          ? const Center(child: CircularProgressIndicator())
           : state.habits.isEmpty
-              ? const Center(
-                  child: Text(
-                    'No habits yet. Tap + to add one!',
-                  ),
-                )
-              : _buildHabitTable(
-                  context,
-                  state,
-                  notifier,
-                ),
+          ? const Center(child: Text('No habits yet. Tap + to add one!'))
+          : _buildHabitTable(context, state, notifier),
     );
   }
 
@@ -214,14 +190,11 @@ class _HabitDashboardScreenState
     dynamic state,
     dynamic notifier,
   ) {
-    final totalDateWidth =
-        state.visibleDates.length *
-            _dateColumnWidth;
+    final totalDateWidth = state.visibleDates.length * _dateColumnWidth;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-
         // =====================================================
         // FIXED LEFT SIDE
         // =====================================================
@@ -230,16 +203,13 @@ class _HabitDashboardScreenState
           width: _habitNameWidth,
           child: Column(
             children: [
-
               // Header above habit names.
               const SizedBox(
                 height: 70,
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Padding(
-                    padding: EdgeInsets.only(
-                      left: 16,
-                    ),
+                    padding: EdgeInsets.only(left: 16),
                     child: Text(
                       'Habits',
                       style: TextStyle(
@@ -252,27 +222,17 @@ class _HabitDashboardScreenState
                 ),
               ),
 
-              const Divider(
-                height: 1,
-              ),
+              const Divider(height: 1),
 
               // Habit names.
               Expanded(
                 child: ListView.builder(
-                  controller:
-                      _leftVerticalController,
-                  itemCount:
-                      state.habits.length,
-                  itemBuilder:
-                      (context, index) {
+                  controller: _leftVerticalController,
+                  itemCount: state.habits.length,
+                  itemBuilder: (context, index) {
+                    final habit = state.habits[index];
 
-                    final habit =
-                        state.habits[index];
-
-                    return _buildHabitNameRow(
-                      context,
-                      habit,
-                    );
+                    return _buildHabitNameRow(context, habit);
                   },
                 ),
               ),
@@ -283,55 +243,36 @@ class _HabitDashboardScreenState
         // =====================================================
         // RIGHT SIDE - HORIZONTALLY SCROLLABLE
         // =====================================================
-
         Expanded(
           child: SingleChildScrollView(
-            controller:
-                _horizontalController,
-            scrollDirection:
-                Axis.horizontal,
+            controller: _horizontalController,
+            scrollDirection: Axis.horizontal,
 
             child: SizedBox(
               width: totalDateWidth,
 
               child: Column(
                 children: [
-
                   // DATE HEADER
-                  _buildDateHeader(
-                    state.visibleDates,
-                  ),
+                  _buildDateHeader(state.visibleDates),
 
-                  const Divider(
-                    height: 1,
-                  ),
+                  const Divider(height: 1),
 
                   // CHECKBOXES
                   Expanded(
                     child: ListView.builder(
-                      controller:
-                          _rightVerticalController,
-                      itemCount:
-                          state.habits.length,
-                      itemBuilder:
-                          (context, index) {
-
-                        final habit =
-                            state.habits[index];
+                      controller: _rightVerticalController,
+                      itemCount: state.habits.length,
+                      itemBuilder: (context, index) {
+                        final habit = state.habits[index];
 
                         return _buildCheckboxRow(
                           context: context,
                           habit: habit,
-                          visibleDates:
-                              state.visibleDates,
+                          visibleDates: state.visibleDates,
                           state: state,
-                          onToggleDate:
-                              (date) {
-                            notifier
-                                .toggleHabitLog(
-                              habit.id,
-                              date,
-                            );
+                          onToggleDate: (date) {
+                            notifier.toggleHabitLog(habit.id, date);
                           },
                         );
                       },
@@ -350,33 +291,21 @@ class _HabitDashboardScreenState
   // FIXED HABIT NAME ROW
   // ===========================================================
 
-  Widget _buildHabitNameRow(
-    BuildContext context,
-    Habit habit,
-  ) {
-    final isSelected =
-        _selectedHabit?.id == habit.id;
+  Widget _buildHabitNameRow(BuildContext context, Habit habit) {
+    final isSelected = _selectedHabit?.id == habit.id;
 
     return Container(
       height: 57,
 
-      padding: const EdgeInsets.symmetric(
-        horizontal: 16,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
 
       decoration: BoxDecoration(
         color: isSelected
-            ? Theme.of(context)
-                .colorScheme
-                .primary
-                .withValues(alpha: 0.08)
+            ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.08)
             : null,
 
         border: const Border(
-          bottom: BorderSide(
-            color: Colors.black12,
-            width: 0.5,
-          ),
+          bottom: BorderSide(color: Colors.black12, width: 0.5),
         ),
       ),
 
@@ -387,10 +316,7 @@ class _HabitDashboardScreenState
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  HabitDetailScreen(
-                habit: habit,
-              ),
+              builder: (context) => HabitDetailScreen(habit: habit),
             ),
           );
         },
@@ -400,19 +326,13 @@ class _HabitDashboardScreenState
             _selectedHabit = habit;
           });
 
-          _showEditHabitBottomSheet(
-            context,
-            habit,
-          );
+          _showEditHabitBottomSheet(context, habit);
         },
 
         child: Text(
           habit.title,
 
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w500,
-          ),
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
 
           overflow: TextOverflow.ellipsis,
         ),
@@ -424,9 +344,7 @@ class _HabitDashboardScreenState
   // DATE HEADER
   // ===========================================================
 
-  Widget _buildDateHeader(
-    List<DateTime> visibleDates,
-  ) {
+  Widget _buildDateHeader(List<DateTime> visibleDates) {
     return SizedBox(
       height: 70,
 
@@ -437,35 +355,27 @@ class _HabitDashboardScreenState
               width: _dateColumnWidth,
 
               child: Column(
-                mainAxisAlignment:
-                    MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
 
                 children: [
                   Text(
-                    DateFormat('E')
-                        .format(date)
-                        .toUpperCase(),
+                    DateFormat('E').format(date).toUpperCase(),
 
                     style: const TextStyle(
                       fontSize: 10,
-                      fontWeight:
-                          FontWeight.bold,
+                      fontWeight: FontWeight.bold,
                       color: Colors.grey,
                     ),
                   ),
 
-                  const SizedBox(
-                    height: 2,
-                  ),
+                  const SizedBox(height: 2),
 
                   Text(
-                    DateFormat('d')
-                        .format(date),
+                    DateFormat('d').format(date),
 
                     style: const TextStyle(
                       fontSize: 12,
-                      fontWeight:
-                          FontWeight.w600,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
@@ -486,124 +396,79 @@ class _HabitDashboardScreenState
     required Habit habit,
     required List<DateTime> visibleDates,
     required dynamic state,
-    required Function(DateTime)
-        onToggleDate,
+    required Function(DateTime) onToggleDate,
   }) {
-    final habitColor =
-        _parseHabitColor(
-      habit.colorHex,
-    );
+    final habitColor = _parseHabitColor(habit.colorHex);
 
-    final isSelected =
-        _selectedHabit?.id == habit.id;
+    final isSelected = _selectedHabit?.id == habit.id;
 
     return Container(
       height: 57,
 
       decoration: BoxDecoration(
         color: isSelected
-            ? Theme.of(context)
-                .colorScheme
-                .primary
-                .withValues(alpha: 0.08)
+            ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.08)
             : null,
 
         border: const Border(
-          bottom: BorderSide(
-            color: Colors.black12,
-            width: 0.5,
-          ),
+          bottom: BorderSide(color: Colors.black12, width: 0.5),
         ),
       ),
 
       child: Row(
         children: [
-          ...visibleDates.map(
-            (date) {
+          ...visibleDates.map((date) {
+            final targetDate = DateTime(date.year, date.month, date.day);
 
-              final targetDate =
-                  DateTime(
-                date.year,
-                date.month,
-                date.day,
+            final isCompleted = state.logs.any((log) {
+              if (log.habitId != habit.id) {
+                return false;
+              }
+
+              final logDate = DateTime(
+                log.completedAt.year,
+                log.completedAt.month,
+                log.completedAt.day,
               );
 
-              final isCompleted =
-                  state.logs.any((log) {
+              return logDate.isAtSameMomentAs(targetDate);
+            });
 
-                if (log.habitId !=
-                    habit.id) {
-                  return false;
-                }
+            return SizedBox(
+              width: _dateColumnWidth,
 
-                final logDate =
-                    DateTime(
-                  log.completedAt.year,
-                  log.completedAt.month,
-                  log.completedAt.day,
-                );
+              child: GestureDetector(
+                onTap: () => onToggleDate(date),
 
-                return logDate
-                    .isAtSameMomentAs(
-                  targetDate,
-                );
-              });
+                child: Center(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
 
-              return SizedBox(
-                width: _dateColumnWidth,
+                    width: 28,
+                    height: 28,
 
-                child: GestureDetector(
-                  onTap: () =>
-                      onToggleDate(date),
+                    decoration: BoxDecoration(
+                      color: isCompleted ? habitColor : Colors.transparent,
 
-                  child: Center(
-                    child: AnimatedContainer(
-                      duration:
-                          const Duration(
-                        milliseconds: 150,
-                      ),
+                      borderRadius: BorderRadius.circular(6),
 
-                      width: 28,
-                      height: 28,
-
-                      decoration:
-                          BoxDecoration(
+                      border: Border.all(
                         color: isCompleted
                             ? habitColor
-                            : Colors
-                                .transparent,
+                            : habitColor.withValues(alpha: 0.5),
 
-                        borderRadius:
-                            BorderRadius
-                                .circular(6),
-
-                        border:
-                            Border.all(
-                          color: isCompleted
-                              ? habitColor
-                              : habitColor
-                                  .withValues(
-                                  alpha: 0.5,
-                                ),
-
-                          width: 1.5,
-                        ),
+                        width: 1.5,
                       ),
-
-                      child: isCompleted
-                          ? const Icon(
-                              Icons.check,
-                              size: 18,
-                              color:
-                                  Colors.white,
-                            )
-                          : null,
                     ),
+
+                    child: isCompleted
+                        ? const Icon(Icons.check, size: 18, color: Colors.white)
+                        : null,
                   ),
                 ),
-              );
-            },
-          ),
+              ),
+            );
+          }),
         ],
       ),
     );

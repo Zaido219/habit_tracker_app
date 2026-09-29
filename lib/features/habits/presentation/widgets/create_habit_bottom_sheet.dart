@@ -126,7 +126,6 @@ class _CreateHabitBottomSheetState
             ),
           ),
           const SizedBox(height: 16),
-          ElevatedButton(onPressed: _submit, child: const Text('Save Habit')),
           const SizedBox(height: 12),
           const SizedBox(height: 16),
           const Text(

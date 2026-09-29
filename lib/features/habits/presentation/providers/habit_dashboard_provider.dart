@@ -7,6 +7,9 @@ import '../../domain/repositories/habit_repository.dart';
 import '../models/habit_dashboard_state.dart';
 import 'habit_repository_provider.dart';
 import 'package:rxdart/rxdart.dart';
+import '../../domain/models/habit_reminder.dart';
+
+
 
 class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
   late final HabitRepository _repository;
@@ -83,11 +86,12 @@ class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
   }
 
   /// Creates a new habit and persists it via the repository
-  Future<void> addHabit(String title, {String colorHex = '0xFF6750A4'}) async {
+  Future<void> addHabit(String title,  String? reminderTime ,{String colorHex = '0xFF6750A4'}) async {
     if (title.trim().isEmpty) return;
 
+    final habitId = DateTime.now().millisecondsSinceEpoch.toString(); 
     final newHabit = Habit(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: habitId,
       title: title.trim(),
       position: state.habits.length,
       createdAt: DateTime.now(),
@@ -97,7 +101,16 @@ class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
       isArchived: false,
     );
 
-    await _repository.createHabit(habit: newHabit);
+    final reminders = reminderTime == null ? <HabitReminder>[]
+    : [
+      HabitReminder(
+        id: '${habitId}_reminder', 
+        habitId: habitId, 
+        leadTimeMinutes: 0, 
+        targetTime: reminderTime,
+        ),
+    ];
+    await _repository.createHabit(habit: newHabit, reminders: reminders);
   }
 
   ///Listen to habit logs

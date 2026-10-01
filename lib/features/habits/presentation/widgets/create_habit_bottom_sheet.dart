@@ -7,8 +7,14 @@ import '../../domain/models/habit.dart';
 class CreateHabitBottomSheet extends ConsumerStatefulWidget {
   final Habit? habitToEdit; // pass a habit object if editing
   final VoidCallback? onClose;
+  final bool useKeyboardInset;
 
-  const CreateHabitBottomSheet({super.key, this.habitToEdit, this.onClose});
+  const CreateHabitBottomSheet({
+    super.key, 
+    this.habitToEdit, 
+    this.onClose,
+    this.useKeyboardInset = true, //modal sheet defualt
+    });
 
   @override
   ConsumerState<CreateHabitBottomSheet> createState() =>
@@ -98,12 +104,10 @@ class _CreateHabitBottomSheetState
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+    final keyboard = widget.useKeyboardInset ? MediaQuery.viewInsetsOf(context).bottom : 0.0;
+
+      return SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(20, 20, 20, 12 + keyboard),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,

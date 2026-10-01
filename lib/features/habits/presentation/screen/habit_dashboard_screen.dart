@@ -108,6 +108,7 @@ class _HabitDashboardScreenState extends ConsumerState<HabitDashboardScreen> {
       context: context,
       builder: (context) => CreateHabitBottomSheet(
         habitToEdit: habit,
+        useKeyboardInset: false, // scaffold already handles the keyboard
         onClose: () {
           _bottomSheetController?.close();
         },
@@ -198,7 +199,7 @@ class _HabitDashboardScreenState extends ConsumerState<HabitDashboardScreen> {
                 showModalBottomSheet(
                   context: context,
                   isScrollControlled: true,
-                  builder: (_) =>  CreateHabitBottomSheet(onClose: () => Navigator.pop(context)),
+                  builder: (sheetContext) =>  CreateHabitBottomSheet(onClose: () => Navigator.pop(sheetContext)),
                   );
               },
             ),

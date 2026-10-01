@@ -70,7 +70,6 @@ class _CreateHabitBottomSheetState
         : '${time.hour.toString().padLeft(2, '0')}:'
               '${time.minute.toString().padLeft(2, '0')}';
 
-
     if (title.isNotEmpty) {
       final notifier = ref.read(habitDashboardProvider.notifier);
       final selectedColorHex = _colorToHex(_selectedColor);
@@ -86,7 +85,11 @@ class _CreateHabitBottomSheetState
         notifier.updateHabit(updatedHabit);
       } else {
         // 2. CREATE LOGIC: Keep existing creation flow
-        notifier.addHabit(title, reminderTime:reminderTime,  colorHex: selectedColorHex);
+        notifier.addHabit(
+          title,
+          reminderTime: reminderTime,
+          colorHex: selectedColorHex,
+        );
       }
 
       widget.onClose?.call();
@@ -98,76 +101,80 @@ class _CreateHabitBottomSheetState
     return Padding(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
-        left: 20,
-        right: 20,
-        top: 20,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Text(
-            'New Habit',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _controller,
-            autofocus: true,
-            decoration: const InputDecoration(
-              hintText: 'e.g. Read 20 pages',
-              border: OutlineInputBorder(),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'New Habit',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            onSubmitted: (_) => _submit(),
-          ),
-          const SizedBox(height: 16),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Reminder'),
-            subtitle: Text(_reminderTime?.format(context) ?? 'Not set'),
-            trailing: IconButton(
-              tooltip: 'Choose reminder time',
-              icon: const Icon(Icons.access_time),
-              onPressed: _pickReminderDate,
+            const SizedBox(height: 12),
+            TextField(
+              controller: _controller,
+              autofocus: true,
+              decoration: const InputDecoration(
+                hintText: 'e.g. Read 20 pages',
+                border: OutlineInputBorder(),
+              ),
+              onSubmitted: (_) => _submit(),
             ),
-          ),
-          const SizedBox(height: 16),
-          const SizedBox(height: 12),
-          const SizedBox(height: 16),
-          const Text(
-            'Color',
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: _colorOptions.map((color) {
-              final isSelected = color == _selectedColor;
-              return Padding(
-                padding: const EdgeInsets.only(right: 10),
-                child: GestureDetector(
-                  onTap: () => setState(() => _selectedColor = color),
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: color,
-                      shape: BoxShape.circle,
-                      border: isSelected
-                          ? Border.all(color: Colors.black87, width: 2)
+            const SizedBox(height: 16),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Reminder'),
+              subtitle: Text(_reminderTime?.format(context) ?? 'Not set'),
+              trailing: IconButton(
+                tooltip: 'Choose reminder time',
+                icon: const Icon(Icons.access_time),
+                onPressed: _pickReminderDate,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const SizedBox(height: 12),
+            const SizedBox(height: 16),
+            const Text(
+              'Color',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: _colorOptions.map((color) {
+                final isSelected = color == _selectedColor;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: GestureDetector(
+                    onTap: () => setState(() => _selectedColor = color),
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                        border: isSelected
+                            ? Border.all(color: Colors.black87, width: 2)
+                            : null,
+                      ),
+                      child: isSelected
+                          ? const Icon(
+                              Icons.check,
+                              size: 16,
+                              color: Colors.white,
+                            )
                           : null,
                     ),
-                    child: isSelected
-                        ? const Icon(Icons.check, size: 16, color: Colors.white)
-                        : null,
                   ),
-                ),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(onPressed: _submit, child: const Text('Save Habit')),
-          const SizedBox(height: 12),
-        ],
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(onPressed: _submit, child: const Text('Save Habit')),
+            const SizedBox(height: 12),
+          ],
+        ),
       ),
     );
   }

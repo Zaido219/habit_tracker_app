@@ -198,8 +198,8 @@ class _HabitDashboardScreenState extends ConsumerState<HabitDashboardScreen> {
                 showModalBottomSheet(
                   context: context,
                   isScrollControlled: true,
-                  builder: (context) => const CreateHabitBottomSheet(),
-                );
+                  builder: (_) =>  CreateHabitBottomSheet(onClose: () => Navigator.pop(context)),
+                  );
               },
             ),
           IconButton(

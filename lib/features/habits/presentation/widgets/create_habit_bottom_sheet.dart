@@ -179,7 +179,6 @@ class _CreateHabitBottomSheetState
             const SizedBox(height: 12),
           ],
         ),
-      ),
-    );
+      );
   }
 }

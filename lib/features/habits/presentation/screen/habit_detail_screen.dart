@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
-
 import '../../domain/models/habit.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../../analytics/presentation/providers/habit_analytics_provider.dart';
-
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
-
 import '../widgets/create_habit_bottom_sheet.dart';
+import '../providers/habit_dashboard_provider.dart';
+
+
 
 class HabitDetailScreen extends ConsumerStatefulWidget {
   final Habit habit;
@@ -24,7 +22,7 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
   bool isWeekView = false;
 
   Color get accentColor {
-    var hex = widget.habit.colorHex
+    var hex = _habit.colorHex
         .replaceFirst('#', '')
         .replaceFirst('0x', '')
         .replaceFirst('0X', '');
@@ -36,8 +34,8 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
   Widget build(BuildContext context) {
     final analyticsAsync = ref.watch(
       habitAnalyticsProvider((
-        habitId: widget.habit.id,
-        schedule: widget.habit.schedule,
+        habitId: _habit.id,
+        schedule: _habit.schedule,
       )),
     );
 
@@ -45,7 +43,7 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
       appBar: AppBar(
         leading: const BackButton(),
         title: Text(
-          widget.habit.title,
+          _habit.title,
           style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
         ),
         actions: [
@@ -453,11 +451,20 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
       isScrollControlled: true, // lets the sheet rise above the keyboard
       useSafeArea: true,
       builder: (sheetContext) => CreateHabitBottomSheet(
-        habitToEdit: widget.habit,
+        habitToEdit: _habit,
         onClose: () => Navigator.of(sheetContext).pop(),
       ),
     );
   }
+
+  Habit get _habit {
+  final live = ref.watch(
+    habitDashboardProvider.select(
+      (s) => s.habits.where((h) => h.id == widget.habit.id).firstOrNull,
+    ),
+  );
+  return live ?? widget.habit; // fallback if it's not in the list
+}
 }
 
 class _StatData {

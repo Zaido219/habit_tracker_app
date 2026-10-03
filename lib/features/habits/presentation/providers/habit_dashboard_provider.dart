@@ -10,7 +10,6 @@ import 'package:rxdart/rxdart.dart';
 import '../../domain/models/habit_reminder.dart';
 
 
-
 class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
   late final HabitRepository _repository;
   StreamSubscription<List<Habit>>? _habitsSubscription;

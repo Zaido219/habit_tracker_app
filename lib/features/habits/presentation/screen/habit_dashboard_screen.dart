@@ -473,14 +473,14 @@ class _HabitDashboardScreenState extends ConsumerState<HabitDashboardScreen> {
                 child: Center(
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 150),
-
-                    width: 28,
-                    height: 28,
+                    // below are the checkboxes sizes
+                    width: 22,
+                    height: 22,
 
                     decoration: BoxDecoration(
                       color: isCompleted ? habitColor : Colors.transparent,
 
-                      borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(5),
 
                       border: Border.all(
                         color: isCompleted
@@ -492,7 +492,7 @@ class _HabitDashboardScreenState extends ConsumerState<HabitDashboardScreen> {
                     ),
 
                     child: isCompleted
-                        ? const Icon(Icons.check, size: 18, color: Colors.white)
+                        ? const Icon(Icons.check, size: 14, color: Colors.white)
                         : null,
                   ),
                 ),

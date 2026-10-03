@@ -9,6 +9,8 @@ import '../../../analytics/presentation/providers/habit_analytics_provider.dart'
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 
+import '../widgets/create_habit_bottom_sheet.dart';
+
 class HabitDetailScreen extends ConsumerStatefulWidget {
   final Habit habit;
 
@@ -46,6 +48,13 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
           widget.habit.title,
           style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
         ),
+        actions: [
+          IconButton(
+            tooltip: 'Edit habit',
+            icon: const Icon(Icons.edit_outlined),
+            onPressed: _showEditSheet,
+          ),
+        ],
       ),
       body: analyticsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -434,6 +443,18 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showEditSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, // lets the sheet rise above the keyboard
+      useSafeArea: true,
+      builder: (sheetContext) => CreateHabitBottomSheet(
+        habitToEdit: widget.habit,
+        onClose: () => Navigator.of(sheetContext).pop(),
       ),
     );
   }

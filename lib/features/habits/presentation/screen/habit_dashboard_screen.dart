@@ -199,8 +199,10 @@ class _HabitDashboardScreenState extends ConsumerState<HabitDashboardScreen> {
                 showModalBottomSheet(
                   context: context,
                   isScrollControlled: true,
-                  builder: (sheetContext) =>  CreateHabitBottomSheet(onClose: () => Navigator.pop(sheetContext)),
-                  );
+                  builder: (sheetContext) => CreateHabitBottomSheet(
+                    onClose: () => Navigator.pop(sheetContext),
+                  ),
+                );
               },
             ),
           IconButton(
@@ -326,50 +328,42 @@ class _HabitDashboardScreenState extends ConsumerState<HabitDashboardScreen> {
   // ===========================================================
   // FIXED HABIT NAME ROW
   // ===========================================================
-
   Widget _buildHabitNameRow(BuildContext context, Habit habit) {
     final isSelected = _selectedHabit?.id == habit.id;
 
-    return Container(
-      height: 57,
+    return GestureDetector(
+      behavior:
+          HitTestBehavior.opaque, // empty space in the row is tappable too
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HabitDetailScreen(habit: habit),
+          ),
+        );
+      },
+      onLongPress: () {
+        setState(() {
+          _selectedHabit = habit;
+        });
 
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-
-      decoration: BoxDecoration(
-        color: isSelected
-            ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.08)
-            : null,
-
-        border: const Border(
-          bottom: BorderSide(color: Colors.black12, width: 0.5),
+        _showEditHabitBottomSheet(context, habit);
+      },
+      child: Container(
+        height: 57,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        alignment: Alignment.centerLeft,
+        decoration: BoxDecoration(
+          color: isSelected
+              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.08)
+              : null,
+          border: const Border(
+            bottom: BorderSide(color: Colors.black12, width: 0.5),
+          ),
         ),
-      ),
-
-      alignment: Alignment.centerLeft,
-
-      child: GestureDetector(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => HabitDetailScreen(habit: habit),
-            ),
-          );
-        },
-
-        onLongPress: () {
-          setState(() {
-            _selectedHabit = habit;
-          });
-
-          _showEditHabitBottomSheet(context, habit);
-        },
-
         child: Text(
           habit.title,
-
           style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
-
           overflow: TextOverflow.ellipsis,
         ),
       ),

@@ -10,6 +10,7 @@ class Habit {
   final int position;
   final DateTime createdAt;
   final bool isArchived;
+  final String habitNotes;
 
 
   const Habit({
@@ -22,6 +23,7 @@ class Habit {
     required this.position,
     required this.createdAt,
     required this.isArchived,
+    required this.habitNotes
 
   });
 
@@ -37,6 +39,7 @@ class Habit {
       position: position,
       createdAt: createdAt,
       isArchived: isArchived,
+      habitNotes: habitNotes
     );
   }
 
@@ -50,6 +53,7 @@ class Habit {
   int? position,
   DateTime? createdAt,
   bool? isArchived,
+  String? habitNotes
 }) {
   return Habit(
     id: id ?? this.id,
@@ -61,6 +65,7 @@ class Habit {
     position: position ?? this.position,
     createdAt: createdAt ?? this.createdAt,
     isArchived: isArchived ?? this.isArchived,
+    habitNotes: habitNotes ?? this.habitNotes
   );
 }
 }

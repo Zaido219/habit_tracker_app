@@ -68,6 +68,17 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, Habit> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _habitNotesMeta = const VerificationMeta(
+    'habitNotes',
+  );
+  @override
+  late final GeneratedColumn<String> habitNotes = GeneratedColumn<String>(
+    'habit_notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _isProtectedMeta = const VerificationMeta(
     'isProtected',
   );
@@ -129,6 +140,7 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, Habit> {
     soundUri,
     scheduleType,
     scheduleConfig,
+    habitNotes,
     isProtected,
     position,
     createdAt,
@@ -195,6 +207,12 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, Habit> {
     } else if (isInserting) {
       context.missing(_scheduleConfigMeta);
     }
+    if (data.containsKey('habit_notes')) {
+      context.handle(
+        _habitNotesMeta,
+        habitNotes.isAcceptableOrUnknown(data['habit_notes']!, _habitNotesMeta),
+      );
+    }
     if (data.containsKey('is_protected')) {
       context.handle(
         _isProtectedMeta,
@@ -257,6 +275,10 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, Habit> {
         DriftSqlType.string,
         data['${effectivePrefix}schedule_config'],
       )!,
+      habitNotes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}habit_notes'],
+      ),
       isProtected: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_protected'],
@@ -289,6 +311,7 @@ class Habit extends DataClass implements Insertable<Habit> {
   final String? soundUri;
   final String scheduleType;
   final String scheduleConfig;
+  final String? habitNotes;
   final bool isProtected;
   final int position;
   final DateTime createdAt;
@@ -300,6 +323,7 @@ class Habit extends DataClass implements Insertable<Habit> {
     this.soundUri,
     required this.scheduleType,
     required this.scheduleConfig,
+    this.habitNotes,
     required this.isProtected,
     required this.position,
     required this.createdAt,
@@ -316,6 +340,9 @@ class Habit extends DataClass implements Insertable<Habit> {
     }
     map['schedule_type'] = Variable<String>(scheduleType);
     map['schedule_config'] = Variable<String>(scheduleConfig);
+    if (!nullToAbsent || habitNotes != null) {
+      map['habit_notes'] = Variable<String>(habitNotes);
+    }
     map['is_protected'] = Variable<bool>(isProtected);
     map['position'] = Variable<int>(position);
     map['created_at'] = Variable<DateTime>(createdAt);
@@ -333,6 +360,9 @@ class Habit extends DataClass implements Insertable<Habit> {
           : Value(soundUri),
       scheduleType: Value(scheduleType),
       scheduleConfig: Value(scheduleConfig),
+      habitNotes: habitNotes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(habitNotes),
       isProtected: Value(isProtected),
       position: Value(position),
       createdAt: Value(createdAt),
@@ -352,6 +382,7 @@ class Habit extends DataClass implements Insertable<Habit> {
       soundUri: serializer.fromJson<String?>(json['soundUri']),
       scheduleType: serializer.fromJson<String>(json['scheduleType']),
       scheduleConfig: serializer.fromJson<String>(json['scheduleConfig']),
+      habitNotes: serializer.fromJson<String?>(json['habitNotes']),
       isProtected: serializer.fromJson<bool>(json['isProtected']),
       position: serializer.fromJson<int>(json['position']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -368,6 +399,7 @@ class Habit extends DataClass implements Insertable<Habit> {
       'soundUri': serializer.toJson<String?>(soundUri),
       'scheduleType': serializer.toJson<String>(scheduleType),
       'scheduleConfig': serializer.toJson<String>(scheduleConfig),
+      'habitNotes': serializer.toJson<String?>(habitNotes),
       'isProtected': serializer.toJson<bool>(isProtected),
       'position': serializer.toJson<int>(position),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -382,6 +414,7 @@ class Habit extends DataClass implements Insertable<Habit> {
     Value<String?> soundUri = const Value.absent(),
     String? scheduleType,
     String? scheduleConfig,
+    Value<String?> habitNotes = const Value.absent(),
     bool? isProtected,
     int? position,
     DateTime? createdAt,
@@ -393,6 +426,7 @@ class Habit extends DataClass implements Insertable<Habit> {
     soundUri: soundUri.present ? soundUri.value : this.soundUri,
     scheduleType: scheduleType ?? this.scheduleType,
     scheduleConfig: scheduleConfig ?? this.scheduleConfig,
+    habitNotes: habitNotes.present ? habitNotes.value : this.habitNotes,
     isProtected: isProtected ?? this.isProtected,
     position: position ?? this.position,
     createdAt: createdAt ?? this.createdAt,
@@ -410,6 +444,9 @@ class Habit extends DataClass implements Insertable<Habit> {
       scheduleConfig: data.scheduleConfig.present
           ? data.scheduleConfig.value
           : this.scheduleConfig,
+      habitNotes: data.habitNotes.present
+          ? data.habitNotes.value
+          : this.habitNotes,
       isProtected: data.isProtected.present
           ? data.isProtected.value
           : this.isProtected,
@@ -430,6 +467,7 @@ class Habit extends DataClass implements Insertable<Habit> {
           ..write('soundUri: $soundUri, ')
           ..write('scheduleType: $scheduleType, ')
           ..write('scheduleConfig: $scheduleConfig, ')
+          ..write('habitNotes: $habitNotes, ')
           ..write('isProtected: $isProtected, ')
           ..write('position: $position, ')
           ..write('createdAt: $createdAt, ')
@@ -446,6 +484,7 @@ class Habit extends DataClass implements Insertable<Habit> {
     soundUri,
     scheduleType,
     scheduleConfig,
+    habitNotes,
     isProtected,
     position,
     createdAt,
@@ -461,6 +500,7 @@ class Habit extends DataClass implements Insertable<Habit> {
           other.soundUri == this.soundUri &&
           other.scheduleType == this.scheduleType &&
           other.scheduleConfig == this.scheduleConfig &&
+          other.habitNotes == this.habitNotes &&
           other.isProtected == this.isProtected &&
           other.position == this.position &&
           other.createdAt == this.createdAt &&
@@ -474,6 +514,7 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
   final Value<String?> soundUri;
   final Value<String> scheduleType;
   final Value<String> scheduleConfig;
+  final Value<String?> habitNotes;
   final Value<bool> isProtected;
   final Value<int> position;
   final Value<DateTime> createdAt;
@@ -486,6 +527,7 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
     this.soundUri = const Value.absent(),
     this.scheduleType = const Value.absent(),
     this.scheduleConfig = const Value.absent(),
+    this.habitNotes = const Value.absent(),
     this.isProtected = const Value.absent(),
     this.position = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -499,6 +541,7 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
     this.soundUri = const Value.absent(),
     required String scheduleType,
     required String scheduleConfig,
+    this.habitNotes = const Value.absent(),
     this.isProtected = const Value.absent(),
     required int position,
     this.createdAt = const Value.absent(),
@@ -517,6 +560,7 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
     Expression<String>? soundUri,
     Expression<String>? scheduleType,
     Expression<String>? scheduleConfig,
+    Expression<String>? habitNotes,
     Expression<bool>? isProtected,
     Expression<int>? position,
     Expression<DateTime>? createdAt,
@@ -530,6 +574,7 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
       if (soundUri != null) 'sound_uri': soundUri,
       if (scheduleType != null) 'schedule_type': scheduleType,
       if (scheduleConfig != null) 'schedule_config': scheduleConfig,
+      if (habitNotes != null) 'habit_notes': habitNotes,
       if (isProtected != null) 'is_protected': isProtected,
       if (position != null) 'position': position,
       if (createdAt != null) 'created_at': createdAt,
@@ -545,6 +590,7 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
     Value<String?>? soundUri,
     Value<String>? scheduleType,
     Value<String>? scheduleConfig,
+    Value<String?>? habitNotes,
     Value<bool>? isProtected,
     Value<int>? position,
     Value<DateTime>? createdAt,
@@ -558,6 +604,7 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
       soundUri: soundUri ?? this.soundUri,
       scheduleType: scheduleType ?? this.scheduleType,
       scheduleConfig: scheduleConfig ?? this.scheduleConfig,
+      habitNotes: habitNotes ?? this.habitNotes,
       isProtected: isProtected ?? this.isProtected,
       position: position ?? this.position,
       createdAt: createdAt ?? this.createdAt,
@@ -587,6 +634,9 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
     if (scheduleConfig.present) {
       map['schedule_config'] = Variable<String>(scheduleConfig.value);
     }
+    if (habitNotes.present) {
+      map['habit_notes'] = Variable<String>(habitNotes.value);
+    }
     if (isProtected.present) {
       map['is_protected'] = Variable<bool>(isProtected.value);
     }
@@ -614,6 +664,7 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
           ..write('soundUri: $soundUri, ')
           ..write('scheduleType: $scheduleType, ')
           ..write('scheduleConfig: $scheduleConfig, ')
+          ..write('habitNotes: $habitNotes, ')
           ..write('isProtected: $isProtected, ')
           ..write('position: $position, ')
           ..write('createdAt: $createdAt, ')
@@ -1262,6 +1313,7 @@ typedef $$HabitsTableCreateCompanionBuilder = HabitsCompanion Function({
   Value<String?> soundUri,
   required String scheduleType,
   required String scheduleConfig,
+  Value<String?> habitNotes,
   Value<bool> isProtected,
   required int position,
   Value<DateTime> createdAt,
@@ -1275,6 +1327,7 @@ typedef $$HabitsTableUpdateCompanionBuilder = HabitsCompanion Function({
   Value<String?> soundUri,
   Value<String> scheduleType,
   Value<String> scheduleConfig,
+  Value<String?> habitNotes,
   Value<bool> isProtected,
   Value<int> position,
   Value<DateTime> createdAt,
@@ -1359,6 +1412,11 @@ class $$HabitsTableFilterComposer
 
   ColumnFilters<String> get scheduleConfig => $composableBuilder(
     column: $table.scheduleConfig,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get habitNotes => $composableBuilder(
+    column: $table.habitNotes,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1472,6 +1530,11 @@ class $$HabitsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get habitNotes => $composableBuilder(
+    column: $table.habitNotes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isProtected => $composableBuilder(
     column: $table.isProtected,
     builder: (column) => ColumnOrderings(column),
@@ -1521,6 +1584,11 @@ class $$HabitsTableAnnotationComposer
 
   GeneratedColumn<String> get scheduleConfig => $composableBuilder(
     column: $table.scheduleConfig,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get habitNotes => $composableBuilder(
+    column: $table.habitNotes,
     builder: (column) => column,
   );
 
@@ -1625,6 +1693,7 @@ class $$HabitsTableTableManager
                 Value<String?> soundUri = const Value.absent(),
                 Value<String> scheduleType = const Value.absent(),
                 Value<String> scheduleConfig = const Value.absent(),
+                Value<String?> habitNotes = const Value.absent(),
                 Value<bool> isProtected = const Value.absent(),
                 Value<int> position = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -1637,6 +1706,7 @@ class $$HabitsTableTableManager
                 soundUri: soundUri,
                 scheduleType: scheduleType,
                 scheduleConfig: scheduleConfig,
+                habitNotes: habitNotes,
                 isProtected: isProtected,
                 position: position,
                 createdAt: createdAt,
@@ -1651,6 +1721,7 @@ class $$HabitsTableTableManager
                 Value<String?> soundUri = const Value.absent(),
                 required String scheduleType,
                 required String scheduleConfig,
+                Value<String?> habitNotes = const Value.absent(),
                 Value<bool> isProtected = const Value.absent(),
                 required int position,
                 Value<DateTime> createdAt = const Value.absent(),
@@ -1663,6 +1734,7 @@ class $$HabitsTableTableManager
                 soundUri: soundUri,
                 scheduleType: scheduleType,
                 scheduleConfig: scheduleConfig,
+                habitNotes: habitNotes,
                 isProtected: isProtected,
                 position: position,
                 createdAt: createdAt,

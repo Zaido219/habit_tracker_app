@@ -7,6 +7,7 @@ class Habits extends Table {
   TextColumn get soundUri => text().nullable()();
   TextColumn get scheduleType => text()();
   TextColumn get scheduleConfig => text()();
+  TextColumn get habitNotes => text().nullable()();
   BoolColumn get isProtected => 
     boolean().withDefault(const Constant(false))();
   IntColumn get position => integer()();

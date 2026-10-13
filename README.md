@@ -2,6 +2,14 @@
 
 I built this Flutter app to keep track of habits and to learn app development by building something I can use. I can mark completions by date and check how consistently I've kept up with each habit.
 
+## Screenshots
+
+![Habit tracker homepage](assets/images/habit-tracker-habit-homepage.jpg)
+
+![Habit tracker creation flow](assets/images/habit-tracker-habit-creation.jpg)
+
+![Habit tracker details view](assets/images/habit-tracker-habit-details.jpg)
+
 ## Features
 
 - **Track habits by date:** The dashboard shows habit rows against a horizontally scrollable grid of today and the previous 364 days. Tap a cell to mark that habit complete for the date, or tap it again to undo it.

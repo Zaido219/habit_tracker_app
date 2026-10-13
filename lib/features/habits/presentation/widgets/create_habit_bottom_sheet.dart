@@ -85,6 +85,7 @@ class _CreateHabitBottomSheetState
         final updatedHabit = widget.habitToEdit!.copyWith(
           title: title,
           colorHex: selectedColorHex,
+          habitNotes: _controller.text.trim(),
         );
 
         // Call the notifier method to update the database record

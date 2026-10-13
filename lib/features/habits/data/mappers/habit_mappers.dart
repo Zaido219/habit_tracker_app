@@ -18,7 +18,8 @@ extension HabitDataMapper on db.Habit {
         scheduleType,
         scheduleConfig,
       ),
-      isArchived:isArchived
+      isArchived:isArchived,
+      habitNotes: habitNotes,
     );
   }
 }
@@ -35,7 +36,8 @@ extension HabitDomainMapper on Habit {
       isProtected: Value(isProtected),
       position: position,
       createdAt: Value(createdAt),
-      isArchived: Value(isArchived)
+      isArchived: Value(isArchived),
+      habitNotes: Value(habitNotes)
     );
   }
 }

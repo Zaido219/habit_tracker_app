@@ -93,6 +93,7 @@ class _CreateHabitBottomSheetState
         // 2. CREATE LOGIC: Keep existing creation flow
         notifier.addHabit(
           title,
+          habitNotes: _controller.text.trim(),
           reminderTime: reminderTime,
           colorHex: selectedColorHex,
         );

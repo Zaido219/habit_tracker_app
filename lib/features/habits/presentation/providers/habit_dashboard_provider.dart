@@ -85,7 +85,7 @@ class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
   }
 
   /// Creates a new habit and persists it via the repository
-  Future<void> addHabit(String title, {String? reminderTime , String colorHex = '0xFF6750A4'}) async {
+  Future<void> addHabit(String title,{String habitNotes = '', String? reminderTime , String colorHex = '0xFF6750A4'}) async {
     if (title.trim().isEmpty) return;
 
     final habitId = DateTime.now().millisecondsSinceEpoch.toString(); 
@@ -98,6 +98,7 @@ class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
       schedule: HabitSchedule(type: ScheduleType.daily),
       isProtected: false,
       isArchived: false,
+      habitNotes: habitNotes.trim()
     );
 
     final reminders = reminderTime == null ? <HabitReminder>[]

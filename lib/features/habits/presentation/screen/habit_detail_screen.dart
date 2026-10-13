@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
+
 import '../../domain/models/habit.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../analytics/presentation/providers/habit_analytics_provider.dart';
+
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
+
 import '../widgets/create_habit_bottom_sheet.dart';
 import '../providers/habit_dashboard_provider.dart';
-
-
+import '../../domain/models/habit_schedule.dart';
 
 class HabitDetailScreen extends ConsumerStatefulWidget {
   final Habit habit;
@@ -33,10 +37,7 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final analyticsAsync = ref.watch(
-      habitAnalyticsProvider((
-        habitId: _habit.id,
-        schedule: _habit.schedule,
-      )),
+      habitAnalyticsProvider((habitId: _habit.id, schedule: _habit.schedule)),
     );
 
     return Scaffold(
@@ -62,8 +63,12 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              _buildReminderInfo(),
+              const SizedBox(height: 16),
+
               _buildStatsGrid(analytics),
               const SizedBox(height: 16),
+
               _buildCalendar(analytics),
               const SizedBox(height: 24),
               _buildCompletionGraph(analytics),
@@ -458,13 +463,81 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
   }
 
   Habit get _habit {
-  final live = ref.watch(
-    habitDashboardProvider.select(
-      (s) => s.habits.where((h) => h.id == widget.habit.id).firstOrNull,
-    ),
-  );
-  return live ?? widget.habit; // fallback if it's not in the list
-}
+    final live = ref.watch(
+      habitDashboardProvider.select(
+        (s) => s.habits.where((h) => h.id == widget.habit.id).firstOrNull,
+      ),
+    );
+    return live ?? widget.habit; // fallback if it's not in the list
+  }
+
+  Widget _buildReminderInfo() {
+    final schedule = _habit.schedule;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.repeat, size: 18, color: accentColor),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Schedule',
+                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _scheduleLabel(schedule),
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // for the parsing of habit schedule
+  String _scheduleLabel(HabitSchedule schedule) {
+    switch (schedule.type) {
+      case ScheduleType.daily:
+        return 'Daily';
+
+      case ScheduleType.weekly:
+        return 'Weekly';
+
+      case ScheduleType.monthly:
+        return 'Monthly';
+
+      case ScheduleType.custom:
+        if (schedule.targetDaysOrFrequency.isNotEmpty) {
+          return 'Every ${schedule.targetDaysOrFrequency.first} days';
+        }
+
+        return 'Custom';
+    }
+  }
+
+  String _formatReminderTime(String time) {
+    try {
+      final parsed = DateFormat('HH:mm').parse(time);
+
+      return DateFormat('h:mm a').format(parsed);
+    } catch (_) {
+      return time;
+    }
+  }
 }
 
 class _StatData {

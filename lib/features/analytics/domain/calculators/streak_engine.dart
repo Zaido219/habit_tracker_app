@@ -21,10 +21,9 @@ class StreakEngine {
 
   DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
 
-  bool _isCompletedOn(DateTime date) {
-    final target = _dateOnly(date);
-    return logs.any((log) => _dateOnly(log.completedAt) == target);
-  }
+  late final Set<DateTime> _completedDates = logs
+      .map((log) => _dateOnly(log.completedAt))
+      .toSet();
 
   /// Consecutive expected days completed, counting back from today.
   int calculateCurrentStreak() {
@@ -34,7 +33,7 @@ class StreakEngine {
 
     while (true) {
       if (schedule.isExpectedDay(cursor)) {
-        if (_isCompletedOn(cursor)) {
+        if (_completedDates.contains(cursor)) {
           streak++;
         } else if (cursor == today) {
           // Don't break the streak just because today isn't done yet.
@@ -62,7 +61,7 @@ class StreakEngine {
 
     int missed = 0;
     for (DateTime d = start; !d.isAfter(today); d = d.add(const Duration(days: 1))) {
-      if (schedule.isExpectedDay(d) && !_isCompletedOn(d)) {
+      if (schedule.isExpectedDay(d) && !_completedDates.contains(d)) {
         missed++;
       }
     }

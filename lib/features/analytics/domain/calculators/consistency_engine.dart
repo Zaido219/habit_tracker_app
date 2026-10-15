@@ -16,10 +16,9 @@ class ConsistencyEngine {
 
   DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
 
-  bool _isCompletedOn(DateTime date) {
-    final target = _dateOnly(date);
-    return logs.any((log) => _dateOnly(log.completedAt) == target);
-  }
+  late final Set<DateTime> _completedDates = logs
+      .map((log) => _dateOnly(log.completedAt))
+      .toSet();
 
   /// Score = completed expected days / total expected days, within [from, to].
   double calculateScore({required DateTime from, required DateTime to}) {
@@ -29,7 +28,7 @@ class ConsistencyEngine {
     for (DateTime d = _dateOnly(from); !d.isAfter(_dateOnly(to)); d = d.add(const Duration(days: 1))) {
       if (schedule.isExpectedDay(d)) {
         expected++;
-        if (_isCompletedOn(d)) completed++;
+        if (_completedDates.contains(d)) completed++;
       }
     }
     return expected == 0 ? 0.0 : completed / expected;

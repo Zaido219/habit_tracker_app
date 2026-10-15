@@ -7,24 +7,15 @@ import 'core/utils/log_observer.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-   assert(() {
-    debugPrintRebuildDirtyWidgets = true;
-    debugProfileBuildsEnabledUserWidgets = true;
-    debugPrintScheduleBuildForStacks = true;
-    return true;
-  }());
-
-
+  debugPrint('MAIN: before NotificationService');
   await NotificationService.initialize();
-
+  debugPrint('MAIN: after NotificationService');
 
   runApp(
-    //providerScope stores the state of all riverpod providers
     ProviderScope(
       observers: [LogObserver()],
-      child: HabitTrackerApp()
-      )
+      child: const HabitTrackerApp(),
+    ),
   );
 }
 

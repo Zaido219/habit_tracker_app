@@ -4,13 +4,17 @@ import 'features/habits/presentation/screen/habit_dashboard_screen.dart';
 import 'core/notifications/notification_service.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await NotificationService.initialize();
 
-  assert(() {
+   assert(() {
     debugPrintRebuildDirtyWidgets = true;
     debugProfileBuildsEnabledUserWidgets = true;
+    debugPrintScheduleBuildForStacks = true;
     return true;
   }());
+
+  
+  await NotificationService.initialize();
+
 
   runApp(
     //providerScope stores the state of all riverpod providers

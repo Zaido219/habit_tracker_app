@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'features/habits/presentation/screen/habit_dashboard_screen.dart';
 import 'core/notifications/notification_service.dart';
+import 'core/utils/log_observer.dart';
+
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -12,13 +15,16 @@ Future<void> main() async {
     return true;
   }());
 
-  
+
   await NotificationService.initialize();
 
 
   runApp(
     //providerScope stores the state of all riverpod providers
-    const ProviderScope(child: HabitTrackerApp())
+    ProviderScope(
+      observers: [LogObserver()],
+      child: HabitTrackerApp()
+      )
   );
 }
 

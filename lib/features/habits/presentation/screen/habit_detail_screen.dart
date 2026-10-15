@@ -65,7 +65,11 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
             children: [
               _buildReminderInfo(),
               const SizedBox(height: 16),
-
+              // optional rendering of habit notes if true
+              if(_habit.habitNotes.trim().isNotEmpty) ... [
+                _buildNotes(),
+                const SizedBox(height: 16,)
+              ],
               _buildStatsGrid(analytics),
               const SizedBox(height: 16),
 
@@ -540,7 +544,7 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
   }
 
   Widget _buildNotes() {
-    final notes = _habit.habitNotes?.trim() ?? '';
+    final notes = _habit.habitNotes.trim();
     if (notes.isEmpty) return const SizedBox.shrink();
 
     return Container(

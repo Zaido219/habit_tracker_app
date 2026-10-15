@@ -5,7 +5,13 @@ import 'core/notifications/notification_service.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService.initialize();
-  
+
+  assert(() {
+    debugPrintRebuildDirtyWidgets = true;
+    debugProfileBuildsEnabledUserWidgets = true;
+    return true;
+  }());
+
   runApp(
     //providerScope stores the state of all riverpod providers
     const ProviderScope(child: HabitTrackerApp())

@@ -10,11 +10,11 @@ class CreateHabitBottomSheet extends ConsumerStatefulWidget {
   final bool useKeyboardInset;
 
   const CreateHabitBottomSheet({
-    super.key, 
-    this.habitToEdit, 
+    super.key,
+    this.habitToEdit,
     this.onClose,
     this.useKeyboardInset = true, //modal sheet defualt
-    });
+  });
 
   @override
   ConsumerState<CreateHabitBottomSheet> createState() =>
@@ -23,8 +23,6 @@ class CreateHabitBottomSheet extends ConsumerStatefulWidget {
 
 class _CreateHabitBottomSheetState
     extends ConsumerState<CreateHabitBottomSheet> {
-  final _controller = TextEditingController();
-
   // Palette to pick from — swap/extend these however you like
   static const _colorOptions = <Color>[
     Color(0xFF6750A4), // deep purple
@@ -37,10 +35,13 @@ class _CreateHabitBottomSheetState
 
   Color _selectedColor = _colorOptions.first;
   TimeOfDay? _reminderTime;
+  final _controller = TextEditingController();
+  final _notesController = TextEditingController();
 
   @override
   void dispose() {
     _controller.dispose();
+    _notesController.dispose();
     super.dispose();
   }
 
@@ -49,7 +50,7 @@ class _CreateHabitBottomSheetState
     super.initState();
     if (widget.habitToEdit != null) {
       _controller.text = widget.habitToEdit!.title;
-      // todo: add more habit state here
+      _notesController.text = widget.habitToEdit!.habitNotes;
     }
   }
 
@@ -70,6 +71,7 @@ class _CreateHabitBottomSheetState
 
   void _submit() {
     final title = _controller.text.trim();
+    final notes = _notesController.text.trim();
     final time = _reminderTime;
     final reminderTime = time == null
         ? null
@@ -85,7 +87,7 @@ class _CreateHabitBottomSheetState
         final updatedHabit = widget.habitToEdit!.copyWith(
           title: title,
           colorHex: selectedColorHex,
-          habitNotes: _controller.text.trim(),
+          habitNotes: notes,
         );
 
         // Call the notifier method to update the database record
@@ -94,7 +96,7 @@ class _CreateHabitBottomSheetState
         // 2. CREATE LOGIC: Keep existing creation flow
         notifier.addHabit(
           title,
-          habitNotes: _controller.text.trim(),
+          habitNotes: notes,
           reminderTime: reminderTime,
           colorHex: selectedColorHex,
         );
@@ -106,81 +108,92 @@ class _CreateHabitBottomSheetState
 
   @override
   Widget build(BuildContext context) {
-    final keyboard = widget.useKeyboardInset ? MediaQuery.viewInsetsOf(context).bottom : 0.0;
+    final keyboard = widget.useKeyboardInset
+        ? MediaQuery.viewInsetsOf(context).bottom
+        : 0.0;
 
-      return SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(20, 20, 20, 12 + keyboard),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              'New Habit',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    return SingleChildScrollView(
+      padding: EdgeInsets.fromLTRB(20, 20, 20, 12 + keyboard),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'New Habit',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _controller,
+            autofocus: true,
+            decoration: const InputDecoration(
+              hintText: 'e.g. Read 20 pages',
+              border: OutlineInputBorder(),
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _controller,
-              autofocus: true,
-              decoration: const InputDecoration(
-                hintText: 'e.g. Read 20 pages',
-                border: OutlineInputBorder(),
-              ),
-              onSubmitted: (_) => _submit(),
+            onSubmitted: (_) => _submit(),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _notesController,
+            minLines: 2,
+            maxLines: 4,
+            textCapitalization: TextCapitalization.sentences,
+            decoration: const InputDecoration(
+              labelText: 'Notes (optional)',
+              hintText: 'e.g. Read before bed, no phone',
+              border: OutlineInputBorder(),
+              alignLabelWithHint: true,
             ),
-            const SizedBox(height: 16),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Reminder'),
-              subtitle: Text(_reminderTime?.format(context) ?? 'Not set'),
-              trailing: IconButton(
-                tooltip: 'Choose reminder time',
-                icon: const Icon(Icons.access_time),
-                onPressed: _pickReminderDate,
-              ),
+          ),
+          const SizedBox(height: 16),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Reminder'),
+            subtitle: Text(_reminderTime?.format(context) ?? 'Not set'),
+            trailing: IconButton(
+              tooltip: 'Choose reminder time',
+              icon: const Icon(Icons.access_time),
+              onPressed: _pickReminderDate,
             ),
-            const SizedBox(height: 16),
-            const SizedBox(height: 12),
-            const SizedBox(height: 16),
-            const Text(
-              'Color',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: _colorOptions.map((color) {
-                final isSelected = color == _selectedColor;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 10),
-                  child: GestureDetector(
-                    onTap: () => setState(() => _selectedColor = color),
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: color,
-                        shape: BoxShape.circle,
-                        border: isSelected
-                            ? Border.all(color: Colors.black87, width: 2)
-                            : null,
-                      ),
-                      child: isSelected
-                          ? const Icon(
-                              Icons.check,
-                              size: 16,
-                              color: Colors.white,
-                            )
+          ),
+          const SizedBox(height: 16),
+          const SizedBox(height: 12),
+          const SizedBox(height: 16),
+          const Text(
+            'Color',
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: _colorOptions.map((color) {
+              final isSelected = color == _selectedColor;
+              return Padding(
+                padding: const EdgeInsets.only(right: 10),
+                child: GestureDetector(
+                  onTap: () => setState(() => _selectedColor = color),
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                      border: isSelected
+                          ? Border.all(color: Colors.black87, width: 2)
                           : null,
                     ),
+                    child: isSelected
+                        ? const Icon(Icons.check, size: 16, color: Colors.white)
+                        : null,
                   ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(onPressed: _submit, child: const Text('Save Habit')),
-            const SizedBox(height: 12),
-          ],
-        ),
-      );
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(onPressed: _submit, child: const Text('Save Habit')),
+          const SizedBox(height: 12),
+        ],
+      ),
+    );
   }
 }

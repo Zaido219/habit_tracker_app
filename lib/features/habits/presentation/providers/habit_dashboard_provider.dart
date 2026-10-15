@@ -11,6 +11,8 @@ import '../../domain/models/habit_reminder.dart';
 
 
 class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
+  static const _visibleHistoryDays = 30;
+
   late final HabitRepository _repository;
   StreamSubscription<List<Habit>>? _habitsSubscription;
   StreamSubscription<List<HabitLog>>? _logsSubscription;
@@ -28,7 +30,7 @@ class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final visibleDates = List.generate(
-      365,
+      _visibleHistoryDays,
       (index) => today.subtract(Duration(days: index)),
     );
 

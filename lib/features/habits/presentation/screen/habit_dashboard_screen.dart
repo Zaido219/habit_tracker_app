@@ -176,9 +176,18 @@ class _HabitDashboardScreenState extends ConsumerState<HabitDashboardScreen> {
 
                 _bottomSheetController?.close();
                 await notifier.deleteHabit(habit.id);
+                // show delete notification
+                await NotificationService.showHabitDeletedNotification(
+                  habit.title,
+                );
 
                 if (mounted) {
                   setState(() => _selectedHabit = null);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('"${habit.title}" deleted')),
+                    );
+                  }
                 }
               },
             ),

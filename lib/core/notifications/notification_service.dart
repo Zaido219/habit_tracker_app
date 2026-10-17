@@ -14,7 +14,8 @@ class NotificationService {
   static Future<void> showTestNotification() async {
     await _plugin
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.requestNotificationsPermission();
 
     const details = NotificationDetails(
@@ -31,6 +32,25 @@ class NotificationService {
       id: 0,
       title: 'Test notification',
       body: 'Notifications are working!',
+      notificationDetails: details,
+    );
+  }
+
+  static Future<void> showHabitDeletedNotification(String habitTitle) async {
+    const details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'habit_deleted_channel',
+        'Habit deleted',
+        channelDescription: 'Notifies when a habit is deleted',
+        importance: Importance.defaultImportance,
+        priority: Priority.defaultPriority,
+      ),
+    );
+
+    await _plugin.show(
+      id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      title: 'Habit deleted',
+      body: '"$habitTitle" and its history were removed.',
       notificationDetails: details,
     );
   }

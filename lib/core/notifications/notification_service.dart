@@ -7,17 +7,15 @@ class NotificationService {
     const settings = InitializationSettings(
       android: AndroidInitializationSettings('@mipmap/ic_launcher'),
     );
-
     await _plugin.initialize(settings: settings);
-  }
-
-  static Future<void> showTestNotification() async {
     await _plugin
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
         >()
         ?.requestNotificationsPermission();
+  }
 
+  static Future<void> showTestNotification() async {
     const details = NotificationDetails(
       android: AndroidNotificationDetails(
         'habit_reminders',

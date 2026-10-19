@@ -140,10 +140,10 @@ class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
   }
   /// Archived a habit
   /// If you need the ui to make some user notification changd this methods return
-  Future<void> archiveHabit(String habitId ) async {
-    await _repository.archiveHabit(habitId);
+  Future<bool> archiveHabit(String habitId) async {
+    return _repository.archiveHabit(habitId);
   }
-  
+
   Future<void> deleteHabit(String habitId) async {
     await _repository.deleteHabit(habitId);
   }

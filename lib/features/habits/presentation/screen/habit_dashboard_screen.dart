@@ -135,18 +135,23 @@ class _HabitDashboardScreenState extends ConsumerState<HabitDashboardScreen> {
               tooltip: 'Archive habit',
               icon: const Icon(Icons.archive_outlined),
               onPressed: () async {
-                final habitId = _selectedHabit!.id;
+                final messenger = ScaffoldMessenger.of(context);
+                final habit = _selectedHabit!;
 
-                await notifier.archiveHabit(habitId);
-                // snack notification when habit is archived
-                if (mounted) {
-                  setState(() => _selectedHabit = null);
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('"${habit.title}" archived')),
-                    );
-                  }
-                }
+                final archived = await notifier.archiveHabit(habit.id);
+                if (!mounted) return;
+
+                _bottomSheetController?.close();
+                setState(() => _selectedHabit = null);
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      archived
+                          ? '"${habit.title}" archived'
+                          : 'Could not archive "${habit.title}"',
+                    ),
+                  ),
+                );
               },
             ),
             IconButton(

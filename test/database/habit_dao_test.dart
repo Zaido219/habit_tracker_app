@@ -97,6 +97,30 @@ void main() {
       expect(await stream.first, hasLength(1));
     });
 
+    test(
+      'archiveHabit marks the habit archived and hides it from active habits',
+      () async {
+        await habitDao.create(
+          HabitsCompanion.insert(
+            id: 'habit_archive',
+            title: 'Archived Habit',
+            color: '#000000',
+            scheduleType: 'daily',
+            scheduleConfig: '{}',
+            position: 0,
+          ),
+        );
+
+        final archived = await habitDao.archiveHabit('habit_archive');
+        final storedHabit = await habitDao.getById('habit_archive');
+        final activeHabits = await habitDao.getAll();
+
+        expect(archived, isTrue);
+        expect(storedHabit?.isArchived, isTrue);
+        expect(activeHabits, isEmpty);
+      },
+    );
+
     test('updateHabit correctly modifies fields', () async {
       await habitDao.create(
         HabitsCompanion.insert(

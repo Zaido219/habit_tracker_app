@@ -118,8 +118,8 @@ class _CreateHabitBottomSheetState
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'New Habit',
+          Text(
+            widget.habitToEdit == null ? 'New Habit' : 'Edit habit',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),

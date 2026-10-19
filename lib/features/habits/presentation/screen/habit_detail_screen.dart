@@ -66,9 +66,9 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
               _buildReminderInfo(),
               const SizedBox(height: 16),
               // optional rendering of habit notes if true
-              if(_habit.habitNotes.trim().isNotEmpty) ... [
+              if (_habit.habitNotes.trim().isNotEmpty) ...[
                 _buildNotes(),
-                const SizedBox(height: 16,)
+                const SizedBox(height: 16),
               ],
               _buildStatsGrid(analytics),
               const SizedBox(height: 16),
@@ -122,8 +122,9 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
         return Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.grey.shade100,
+            color: accentColor.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: accentColor.withValues(alpha: 0.2)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -256,7 +257,7 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
                           ? Colors.transparent
                           : completed
                           ? accentColor
-                          : Colors.grey.shade200,
+                          : accentColor.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: isFuture
@@ -339,8 +340,9 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: accentColor.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: accentColor.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -481,8 +483,9 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: accentColor.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: accentColor.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
@@ -550,8 +553,9 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: accentColor.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: accentColor.withValues(alpha: 0.2)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/habit_dashboard_provider.dart';
 import '../../domain/models/habit.dart';
+import '../../domain/models/habit_reminder.dart';
 
 class CreateHabitBottomSheet extends ConsumerStatefulWidget {
   final Habit? habitToEdit; // pass a habit object if editing
@@ -35,6 +38,10 @@ class _CreateHabitBottomSheetState
 
   Color _selectedColor = _colorOptions.first;
   TimeOfDay? _reminderTime;
+  List<HabitReminder> _existingReminders = [];
+  bool _isLoadingReminders = false;
+  bool _isSaving = false;
+  String? _reminderLoadError;
   final _controller = TextEditingController();
   final _notesController = TextEditingController();
 
@@ -51,7 +58,37 @@ class _CreateHabitBottomSheetState
     if (widget.habitToEdit != null) {
       _controller.text = widget.habitToEdit!.title;
       _notesController.text = widget.habitToEdit!.habitNotes;
+      _isLoadingReminders = true;
+      unawaited(_loadExistingReminders());
     }
+  }
+
+  Future<void> _loadExistingReminders() async {
+    try {
+      final reminders = await ref
+          .read(habitDashboardProvider.notifier)
+          .getRemindersForHabit(widget.habitToEdit!.id);
+      if (!mounted) return;
+
+      setState(() {
+        _existingReminders = reminders;
+        _reminderTime = reminders.isEmpty
+            ? null
+            : _parseReminderTime(reminders.first.targetTime);
+        _isLoadingReminders = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _reminderLoadError = error.toString();
+        _isLoadingReminders = false;
+      });
+    }
+  }
+
+  TimeOfDay _parseReminderTime(String value) {
+    final parts = value.split(':');
+    return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
   }
 
   Future<void> _pickReminderDate() async {
@@ -69,7 +106,9 @@ class _CreateHabitBottomSheetState
     return '0x${color.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase()}';
   }
 
-  void _submit() {
+  Future<void> _submit() async {
+    if (_isSaving || _isLoadingReminders || _reminderLoadError != null) return;
+
     final title = _controller.text.trim();
     final notes = _notesController.text.trim();
     final time = _reminderTime;
@@ -81,28 +120,60 @@ class _CreateHabitBottomSheetState
     if (title.isNotEmpty) {
       final notifier = ref.read(habitDashboardProvider.notifier);
       final selectedColorHex = _colorToHex(_selectedColor);
+      final messenger = ScaffoldMessenger.of(context);
 
-      if (widget.habitToEdit != null) {
-        // 1. UPDATE LOGIC: Create an updated model instance using copyWith
-        final updatedHabit = widget.habitToEdit!.copyWith(
-          title: title,
-          colorHex: selectedColorHex,
-          habitNotes: notes,
-        );
+      setState(() => _isSaving = true);
+      try {
+        if (widget.habitToEdit != null) {
+          final habit = widget.habitToEdit!;
+          final updatedHabit = habit.copyWith(
+            title: title,
+            colorHex: selectedColorHex,
+            habitNotes: notes,
+          );
 
-        // Call the notifier method to update the database record
-        notifier.updateHabit(updatedHabit);
-      } else {
-        // 2. CREATE LOGIC: Keep existing creation flow
-        notifier.addHabit(
-          title,
-          habitNotes: notes,
-          reminderTime: reminderTime,
-          colorHex: selectedColorHex,
+          await notifier.updateHabit(updatedHabit);
+
+          final reminders = reminderTime == null
+              ? <HabitReminder>[]
+              : [
+                  if (_existingReminders.isEmpty)
+                    HabitReminder(
+                      id: '${habit.id}_reminder',
+                      habitId: habit.id,
+                      leadTimeMinutes: 0,
+                      targetTime: reminderTime,
+                    )
+                  else ...[
+                    HabitReminder(
+                      id: _existingReminders.first.id,
+                      habitId: habit.id,
+                      leadTimeMinutes: _existingReminders.first.leadTimeMinutes,
+                      targetTime: reminderTime,
+                    ),
+                    ..._existingReminders.skip(1),
+                  ],
+                ];
+          await notifier.syncReminders(habit.id, reminders);
+        } else {
+          await notifier.addHabit(
+            title,
+            habitNotes: notes,
+            reminderTime: reminderTime,
+            colorHex: selectedColorHex,
+          );
+        }
+
+        if (!mounted) return;
+        widget.onClose?.call();
+      } catch (error) {
+        if (!mounted) return;
+        messenger.showSnackBar(
+          SnackBar(content: Text('Could not save habit: $error')),
         );
+      } finally {
+        if (mounted) setState(() => _isSaving = false);
       }
-
-      widget.onClose?.call();
     }
   }
 
@@ -148,13 +219,27 @@ class _CreateHabitBottomSheetState
           ListTile(
             contentPadding: EdgeInsets.zero,
             title: const Text('Reminder'),
-            subtitle: Text(_reminderTime?.format(context) ?? 'Not set'),
+            subtitle: Text(
+              _isLoadingReminders
+                  ? 'Loading reminder...'
+                  : _reminderTime?.format(context) ?? 'Not set',
+            ),
             trailing: IconButton(
               tooltip: 'Choose reminder time',
               icon: const Icon(Icons.access_time),
-              onPressed: _pickReminderDate,
+              onPressed: _isLoadingReminders || _reminderLoadError != null
+                  ? null
+                  : _pickReminderDate,
             ),
           ),
+          if (_reminderLoadError != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Text(
+                'Could not load existing reminder: $_reminderLoadError',
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ),
           const SizedBox(height: 16),
           const SizedBox(height: 12),
           const SizedBox(height: 16),
@@ -189,7 +274,13 @@ class _CreateHabitBottomSheetState
             }).toList(),
           ),
           const SizedBox(height: 16),
-          ElevatedButton(onPressed: _submit, child: const Text('Save Habit')),
+          ElevatedButton(
+            onPressed:
+                _isSaving || _isLoadingReminders || _reminderLoadError != null
+                ? null
+                : _submit,
+            child: Text(_isSaving ? 'Saving...' : 'Save Habit'),
+          ),
           const SizedBox(height: 12),
         ],
       ),

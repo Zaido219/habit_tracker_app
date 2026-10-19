@@ -134,10 +134,20 @@ class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
           state = state.copyWith(logs: aggregatedLogs);
         });
   }
+
   /// Updates habit
   Future<void> updateHabit(Habit updatedHabit) async {
     await _repository.updateHabit(updatedHabit);
   }
+
+  Future<List<HabitReminder>> getRemindersForHabit(String habitId) {
+    return _repository.getRemindersForHabit(habitId);
+  }
+
+  Future<void> syncReminders(String habitId, List<HabitReminder> reminders) {
+    return _repository.syncReminders(habitId, reminders);
+  }
+
   /// Archived a habit
   /// If you need the ui to make some user notification changd this methods return
   Future<bool> archiveHabit(String habitId) async {

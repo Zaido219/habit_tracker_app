@@ -125,7 +125,6 @@ class _CreateHabitBottomSheetState
           const SizedBox(height: 12),
           TextField(
             controller: _controller,
-            autofocus: true,
             decoration: const InputDecoration(
               hintText: 'e.g. Read 20 pages',
               border: OutlineInputBorder(),

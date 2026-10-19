@@ -138,11 +138,14 @@ class _HabitDashboardScreenState extends ConsumerState<HabitDashboardScreen> {
                 final habitId = _selectedHabit!.id;
 
                 await notifier.archiveHabit(habitId);
-
+                // snack notification when habit is archived
                 if (mounted) {
-                  setState(() {
-                    _selectedHabit = null;
-                  });
+                  setState(() => _selectedHabit = null);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('"${habit.title}" archived')),
+                    );
+                  }
                 }
               },
             ),

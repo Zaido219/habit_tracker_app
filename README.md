@@ -4,11 +4,22 @@ I built this Flutter app to keep track of habits and to learn app development by
 
 ## Screenshots
 
-![Habit tracker homepage](assets/images/habit-tracker-habit-homepage.jpg)
-
-![Habit tracker creation flow](assets/images/habit-tracker-habit-creation.jpg)
-
-![Habit tracker details view](assets/images/habit-tracker-habit-details.jpg)
+<table>
+  <tr>
+    <td align="center">
+      <img src="assets/images/habit-tracker-habit-homepage.jpg" alt="Habit tracker homepage" width="100%">
+      <br><em>Homepage</em>
+    </td>
+    <td align="center">
+      <img src="assets/images/habit-tracker-habit-creation.jpg" alt="Habit tracker creation flow" width="100%">
+      <br><em>Create a habit</em>
+    </td>
+    <td align="center">
+      <img src="assets/images/habit-tracker-habit-details.jpg" alt="Habit tracker details view" width="100%">
+      <br><em>Habit details</em>
+    </td>
+  </tr>
+</table>
 
 ## Features
 

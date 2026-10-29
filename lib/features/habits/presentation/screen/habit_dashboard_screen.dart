@@ -117,6 +117,9 @@ class _HabitDashboardScreenState extends ConsumerState<HabitDashboardScreen> {
 
     _bottomSheetController!.closed.then((_) {
       _bottomSheetController = null;
+      if (mounted && _selectedHabit?.id == habit.id) {
+        setState(() => _selectedHabit = null);
+      }
     });
   }
 

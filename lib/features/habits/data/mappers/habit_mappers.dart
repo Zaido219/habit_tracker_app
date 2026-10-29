@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+
 import '../../../../core/database/app_database.dart' as db;
 import '../../domain/models/habit.dart';
 import 'habit_schedule_mappers.dart';
@@ -17,8 +18,9 @@ extension HabitDataMapper on db.Habit {
       schedule: HabitScheduleStorage.fromStorage(
         scheduleType,
         scheduleConfig,
+        fallbackStartDate: createdAt,
       ),
-      isArchived:isArchived,
+      isArchived: isArchived,
       habitNotes: habitNotes,
     );
   }
@@ -31,13 +33,15 @@ extension HabitDomainMapper on Habit {
       title: title,
       color: colorHex,
       soundUri: Value(soundUri),
-      scheduleType: schedule.type.name, // Extract enum String name ('daily', 'weekly')
-      scheduleConfig: schedule.toConfigJson(), // Converts List<int> to JSON String
+      scheduleType:
+          schedule.type.name, // Extract enum String name ('daily', 'weekly')
+      scheduleConfig: schedule
+          .toConfigJson(), // Converts List<int> to JSON String
       isProtected: Value(isProtected),
       position: position,
       createdAt: Value(createdAt),
       isArchived: Value(isArchived),
-      habitNotes: Value(habitNotes)
+      habitNotes: Value(habitNotes),
     );
   }
 }

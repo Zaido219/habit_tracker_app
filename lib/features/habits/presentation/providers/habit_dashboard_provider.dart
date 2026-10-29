@@ -1,14 +1,17 @@
 import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habit_tracker_app/features/habits/domain/models/habit_schedule.dart';
+
 import '../../domain/models/habit.dart';
 import '../../domain/models/habit_log.dart';
 import '../../domain/repositories/habit_repository.dart';
 import '../models/habit_dashboard_state.dart';
 import 'habit_repository_provider.dart';
-import 'package:rxdart/rxdart.dart';
-import '../../domain/models/habit_reminder.dart';
 
+import 'package:rxdart/rxdart.dart';
+
+import '../../domain/models/habit_reminder.dart';
 
 class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
   static const _visibleHistoryDays = 30;
@@ -87,31 +90,38 @@ class HabitDashboardNotifier extends Notifier<HabitDashboardState> {
   }
 
   /// Creates a new habit and persists it via the repository
-  Future<void> addHabit(String title,{String habitNotes = '', String? reminderTime , String colorHex = '0xFF6750A4'}) async {
+  Future<void> addHabit(
+    String title, {
+    String habitNotes = '',
+    String? reminderTime,
+    String colorHex = '0xFF6750A4',
+    HabitSchedule schedule = const HabitSchedule(type: ScheduleType.daily),
+  }) async {
     if (title.trim().isEmpty) return;
 
-    final habitId = DateTime.now().millisecondsSinceEpoch.toString(); 
+    final habitId = DateTime.now().millisecondsSinceEpoch.toString();
     final newHabit = Habit(
       id: habitId,
       title: title.trim(),
       position: state.habits.length,
       createdAt: DateTime.now(),
       colorHex: colorHex,
-      schedule: HabitSchedule(type: ScheduleType.daily),
+      schedule: schedule,
       isProtected: false,
       isArchived: false,
-      habitNotes: habitNotes.trim()
+      habitNotes: habitNotes.trim(),
     );
 
-    final reminders = reminderTime == null ? <HabitReminder>[]
-    : [
-      HabitReminder(
-        id: '${habitId}_reminder', 
-        habitId: habitId, 
-        leadTimeMinutes: 0, 
-        targetTime: reminderTime,
-        ),
-    ];
+    final reminders = reminderTime == null
+        ? <HabitReminder>[]
+        : [
+            HabitReminder(
+              id: '${habitId}_reminder',
+              habitId: habitId,
+              leadTimeMinutes: 0,
+              targetTime: reminderTime,
+            ),
+          ];
     await _repository.createHabit(habit: newHabit, reminders: reminders);
   }
 

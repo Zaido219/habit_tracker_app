@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/habit_dashboard_provider.dart';
 import '../../domain/models/habit.dart';
 import '../../domain/models/habit_reminder.dart';
+import '../../domain/models/habit_schedule.dart';
 
 class CreateHabitBottomSheet extends ConsumerStatefulWidget {
   final Habit? habitToEdit; // pass a habit object if editing
@@ -44,11 +45,16 @@ class _CreateHabitBottomSheetState
   String? _reminderLoadError;
   final _controller = TextEditingController();
   final _notesController = TextEditingController();
+  final _customIntervalController = TextEditingController(text: '2');
+  ScheduleType _selectedScheduleType = ScheduleType.daily;
+  Set<int> _selectedWeekdays = {};
+  int _selectedMonthDay = 1;
 
   @override
   void dispose() {
     _controller.dispose();
     _notesController.dispose();
+    _customIntervalController.dispose();
     super.dispose();
   }
 
@@ -58,6 +64,20 @@ class _CreateHabitBottomSheetState
     if (widget.habitToEdit != null) {
       _controller.text = widget.habitToEdit!.title;
       _notesController.text = widget.habitToEdit!.habitNotes;
+      final schedule = widget.habitToEdit!.schedule;
+      _selectedScheduleType = schedule.type;
+      _selectedWeekdays = schedule.type == ScheduleType.weekly
+          ? schedule.targetDaysOrFrequency.toSet()
+          : {};
+      if (schedule.type == ScheduleType.monthly &&
+          schedule.targetDaysOrFrequency.isNotEmpty) {
+        _selectedMonthDay = schedule.targetDaysOrFrequency.first;
+      }
+      if (schedule.type == ScheduleType.custom &&
+          schedule.targetDaysOrFrequency.isNotEmpty) {
+        _customIntervalController.text = schedule.targetDaysOrFrequency.first
+            .toString();
+      }
       _isLoadingReminders = true;
       unawaited(_loadExistingReminders());
     }
@@ -111,6 +131,43 @@ class _CreateHabitBottomSheetState
 
     final title = _controller.text.trim();
     final notes = _notesController.text.trim();
+    final customInterval = int.tryParse(_customIntervalController.text);
+    if (_selectedScheduleType == ScheduleType.weekly &&
+        _selectedWeekdays.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Choose at least one day.')));
+      return;
+    }
+    if (_selectedScheduleType == ScheduleType.custom &&
+        (customInterval == null || customInterval < 1)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Enter a valid interval of at least 1 day.'),
+        ),
+      );
+      return;
+    }
+
+    final existingSchedule = widget.habitToEdit?.schedule;
+    final schedule = switch (_selectedScheduleType) {
+      ScheduleType.daily => const HabitSchedule(type: ScheduleType.daily),
+      ScheduleType.weekly => HabitSchedule(
+        type: ScheduleType.weekly,
+        targetDaysOrFrequency: _selectedWeekdays.toList()..sort(),
+      ),
+      ScheduleType.monthly => HabitSchedule(
+        type: ScheduleType.monthly,
+        targetDaysOrFrequency: [_selectedMonthDay],
+      ),
+      ScheduleType.custom => HabitSchedule(
+        type: ScheduleType.custom,
+        targetDaysOrFrequency: [customInterval!],
+        startDate: existingSchedule?.type == ScheduleType.custom
+            ? existingSchedule!.startDate ?? DateTime.now()
+            : DateTime.now(),
+      ),
+    };
     final time = _reminderTime;
     final reminderTime = time == null
         ? null
@@ -130,6 +187,7 @@ class _CreateHabitBottomSheetState
             title: title,
             colorHex: selectedColorHex,
             habitNotes: notes,
+            schedule: schedule,
           );
 
           await notifier.updateHabit(updatedHabit);
@@ -161,6 +219,7 @@ class _CreateHabitBottomSheetState
             habitNotes: notes,
             reminderTime: reminderTime,
             colorHex: selectedColorHex,
+            schedule: schedule,
           );
         }
 
@@ -215,6 +274,94 @@ class _CreateHabitBottomSheetState
               alignLabelWithHint: true,
             ),
           ),
+          const SizedBox(height: 16),
+          DropdownButtonFormField<ScheduleType>(
+            initialValue: _selectedScheduleType,
+            decoration: const InputDecoration(
+              labelText: 'Schedule',
+              border: OutlineInputBorder(),
+            ),
+            items: const [
+              DropdownMenuItem(value: ScheduleType.daily, child: Text('Daily')),
+              DropdownMenuItem(
+                value: ScheduleType.weekly,
+                child: Text('Weekly'),
+              ),
+              DropdownMenuItem(
+                value: ScheduleType.monthly,
+                child: Text('Monthly'),
+              ),
+              DropdownMenuItem(
+                value: ScheduleType.custom,
+                child: Text('Custom interval'),
+              ),
+            ],
+            onChanged: (type) {
+              if (type != null) {
+                setState(() => _selectedScheduleType = type);
+              }
+            },
+          ),
+          if (_selectedScheduleType == ScheduleType.weekly) ...[
+            const SizedBox(height: 12),
+            const Text('Repeat on'),
+            const SizedBox(height: 4),
+            Wrap(
+              spacing: 4,
+              children: [
+                for (final entry in const [
+                  (1, 'Mon'),
+                  (2, 'Tue'),
+                  (3, 'Wed'),
+                  (4, 'Thu'),
+                  (5, 'Fri'),
+                  (6, 'Sat'),
+                  (7, 'Sun'),
+                ])
+                  FilterChip(
+                    label: Text(entry.$2),
+                    selected: _selectedWeekdays.contains(entry.$1),
+                    onSelected: (selected) {
+                      setState(() {
+                        if (selected) {
+                          _selectedWeekdays.add(entry.$1);
+                        } else {
+                          _selectedWeekdays.remove(entry.$1);
+                        }
+                      });
+                    },
+                  ),
+              ],
+            ),
+          ],
+          if (_selectedScheduleType == ScheduleType.monthly) ...[
+            const SizedBox(height: 12),
+            DropdownButtonFormField<int>(
+              initialValue: _selectedMonthDay,
+              decoration: const InputDecoration(
+                labelText: 'Day of the month',
+                border: OutlineInputBorder(),
+              ),
+              items: [
+                for (var day = 1; day <= 31; day++)
+                  DropdownMenuItem(value: day, child: Text('$day')),
+              ],
+              onChanged: (day) {
+                if (day != null) setState(() => _selectedMonthDay = day);
+              },
+            ),
+          ],
+          if (_selectedScheduleType == ScheduleType.custom) ...[
+            const SizedBox(height: 12),
+            TextField(
+              controller: _customIntervalController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Repeat every (days)',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
           ListTile(
             contentPadding: EdgeInsets.zero,

@@ -24,6 +24,7 @@ class HabitDetailScreen extends ConsumerStatefulWidget {
 
 class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
   bool isWeekView = false;
+  bool _isDeleting = false;
 
   Color get accentColor {
     var hex = _habit.colorHex
@@ -48,6 +49,11 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
           style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
         ),
         actions: [
+          IconButton(
+            tooltip: 'Delete habit',
+            icon: const Icon(Icons.delete_outline),
+            onPressed: _isDeleting ? null : _confirmDelete,
+          ),
           IconButton(
             tooltip: 'Edit habit',
             icon: const Icon(Icons.edit_outlined),
@@ -81,6 +87,51 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _confirmDelete() async {
+    final habit = _habit;
+    final messenger = ScaffoldMessenger.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete habit?'),
+        content: Text(
+          'Permanently delete "${habit.title}" and its completion history? '
+          'This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _isDeleting = true);
+    try {
+      await ref.read(habitDashboardProvider.notifier).deleteHabit(habit.id);
+      if (!mounted) return;
+
+      Navigator.of(context).pop();
+      messenger.showSnackBar(
+        SnackBar(content: Text('"${habit.title}" deleted')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+
+      setState(() => _isDeleting = false);
+      messenger.showSnackBar(
+        SnackBar(content: Text('Could not delete "${habit.title}": $error')),
+      );
+    }
   }
 
   Widget _buildStatsGrid(HabitAnalytics analytics) {
